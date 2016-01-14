@@ -7,16 +7,18 @@ facts("About creating RingArray") do
     end
 
     context("passing a size") do
-        s = rand(1:1000)
+        s = rand(1:10)
         b_s = (10,)
         test = RingArray{Int, 1}(s)
 
-        @pending test.blocks --> Array{AbstractArray{Int64,1},1}(s)
+        @fact isdefined(test.blocks, 1:s...) --> false
+        @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
         @fact test.max_blocks --> s
         @fact test.next_write --> 1
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
+        @fact size(test) --> tuple(b_s[1]*s,)
     end
     context("passing nothing") do
         s = 10
@@ -29,6 +31,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
+        @fact size(test) --> tuple(b_s[1]*s,)
     end
     context("passing 0 for size") do
         s = 0
@@ -41,10 +44,24 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
+        @fact size(test) --> tuple(b_s[1]*s,)
     end
     context("passing a negative for size") do
         s = -1
         @fact_throws test = RingArray{Int, 1}(s)
+    end
+    context("having a multi dimensional array") do
+        s = 0
+        b_s = (10,)
+        test = RingArray{Int, 1}(s)
+
+        @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
+        @fact test.max_blocks --> s
+        @fact test.next_write --> 1
+        @fact test.num_users --> zeros(Int, s)
+        @fact test.block_size --> b_s
+        @fact test.range --> 1:0
+        @fact size(test) --> tuple(b_s[1]*s,)
     end
 end
 
@@ -100,5 +117,19 @@ facts("Getting values from RingArray") do
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[block_picked][index_in_block] "block_picked = $block_picked, index_in_block = $index_in_block, index = $index, b_s = $b_s"
         @fact test[index] --> test[index]
+    end
+
+    context("Getting value from 2 d array") do
+        s = rand(3:10)
+        b_s = (rand(1:10),rand(1:10))
+        block_picked = rand(3:s)
+        index_in_block = (rand(1:b_s[1]), rand(1:b_s[2]))
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2])
+
+        test = RingArray{Int, 2}(s, b_s)
+
+        @fact typeof(test[index...]) --> Int
+        @fact test[index...] --> test.blocks[block_picked][index_in_block...] "block_picked = $block_picked, index_in_block = $index_in_block, index = $index, b_s = $b_s"
+        @fact test[index...] --> test[index...]
     end
 end

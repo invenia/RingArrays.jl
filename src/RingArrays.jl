@@ -7,7 +7,7 @@ type RingArrayOld{T, N} <: AbstractArray{T, N}
     data_type::Type
     data_dimensions::Int
     buffer_dim::Int
-    block_size::Tuple{Int}
+    block_size::Tuple
     max_blocks::Int
     blocks::Array
 end
@@ -17,10 +17,10 @@ type RingArray{T, N} <: AbstractArray{T, N}
     max_blocks::Int
     blocks::Array{AbstractArray{T, N}, 1}
     num_users::Array{Int, 1}
-    block_size::Tuple{Int}
+    block_size::Tuple
     range::UnitRange{Int}
 
-    function RingArray(max_blocks::Int, block_size::Tuple{Int})
+    function RingArray(max_blocks::Int, block_size::Tuple)
         return new(1, max_blocks,
             Array{AbstractArray{T, N}, 1}(max_blocks),
             zeros(Int, max_blocks), block_size, 1:0)
@@ -41,7 +41,11 @@ type RingArray{T, N} <: AbstractArray{T, N}
 end
 
 function size{T, N}(ring::RingArray{T, N})
-    return ring.block_size
+    if N <= 1
+        return tuple(ring.block_size[1] * ring.max_blocks,)
+    else
+        return tuple(ring.block_size[1] * ring.max_blocks, ring.block_size[2:end])
+    end
 end
 
 function getindex(ring::RingArray, i::Int...)
@@ -62,10 +66,6 @@ function load_block(ring::RingArray)
     ring.blocks[ring.next_write] = data_fetch(ring)
     ring.range = ring.range.start:ring.range.stop + ring.block_size[1]
     ring.next_write += 1
-end
-
-function is_full(ring::RingArray)
-    return ring.max_blocks <= length(ring.blocks)
 end
 
 # Util functions
