@@ -53,6 +53,8 @@ function size{T, N}(ring::RingArray{T, N})
     end
 end
 
+getindex(ring::RingArray) = nothing # Warnings told me to make this
+
 function getindex(ring::RingArray, i::Int...)
     result = 0
 
@@ -64,6 +66,10 @@ function getindex(ring::RingArray, i::Int...)
     index = collect([fix_zero_index(i[1], ring.block_length), i[2:end]...])
 
     return ring.blocks[block_index][index...]
+end
+
+function getindex(ring::RingArray, i::UnitRange...)
+    return sub(ring, i...)
 end
 
 function data_fetch{T}(ring::RingArray{T})
