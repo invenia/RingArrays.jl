@@ -55,7 +55,10 @@ function getindex(ring::RingArray, i::Int...)
         load_block(ring)
     end
 
-    return ring.blocks[divide(i[1],ring.block_size[1])][fix_zero_index(i[1],ring.block_size[1])]
+    block_index = divide(i[1],ring.block_size[1])
+    index = collect([fix_zero_index(i[1], ring.block_size[1]), i[2:end]...])
+
+    return ring.blocks[block_index][index...]
 end
 
 function data_fetch{T}(ring::RingArray{T})
