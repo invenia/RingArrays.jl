@@ -49,7 +49,7 @@ function size{T, N}(ring::RingArray{T, N})
     if N <= 1
         return tuple(ring.block_length * ring.max_blocks,)
     else
-        return tuple(ring.block_length * ring.max_blocks, ring.block_size[2:end])
+        return tuple(ring.block_length * ring.max_blocks, ring.block_size[2:end]...)
     end
 end
 
