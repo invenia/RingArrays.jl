@@ -1,5 +1,3 @@
-using DataStructures
-
 module RingArrays
 
 import Base.size, Base.getindex
