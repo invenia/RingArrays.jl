@@ -2,14 +2,14 @@ using DataStructures
 
 module RingArrays
 
-import Base.size
+import Base.size, Base.getindex
 export RingArray, size
 
 type RingArrayOld{T, N} <: AbstractArray{T, N}
     data_type::Type
     data_dimensions::Int
     buffer_dim::Int
-    block_size::Int
+    block_size::Tuple{Int}
     max_blocks::Int
     blocks::Array
 end
@@ -19,30 +19,74 @@ type RingArray{T, N} <: AbstractArray{T, N}
     max_blocks::Int
     blocks::Array{AbstractArray{T, N}, 1}
     num_users::Array{Int, 1}
-    start_index::Int
+    block_size::Tuple{Int}
+    range::UnitRange{Int}
 
+    function RingArray(max_blocks::Int, block_size::Tuple{Int})
+        return new(1, max_blocks,
+            Array{AbstractArray{T, N}, 1}(max_blocks),
+            zeros(Int, max_blocks), block_size, 1:0)
+    end
     function RingArray(max_blocks::Int)
-        return new(1, max_blocks, Array{AbstractArray{T, N}, 1}(), zeros(Int, max_blocks), 1)
+        block_size = (10,)
+        return new(1, max_blocks,
+            Array{AbstractArray{T, N}, 1}(max_blocks),
+            zeros(Int, max_blocks), block_size, 1:0)
     end
     function RingArray()
-        max_blocks = 16
-        return new(1, max_blocks, Array{AbstractArray{T, N}, 1}(), zeros(Int, max_blocks), 1)
+        max_blocks = 10
+        block_size = (10,)
+        return new(1, max_blocks,
+            Array{AbstractArray{T, N}, 1}(max_blocks),
+            zeros(Int, max_blocks), block_size, 1:0)
     end
 end
 
 function size{T, N}(ring::RingArray{T, N})
-    return tuple(0)
+    return ring.block_size
 end
 
-function data_fetch(ring::RingArray)
+function getindex(ring::RingArray, i::Int...)
+    result = 0
+
+    while ring.range.stop < i[1]
+        load_block(ring)
+    end
+
+    return ring.blocks[divide(i[1],ring.block_size[1])][fix_zero_index(i[1],ring.block_size[1])]
 end
 
-function enqueue!(ring::RingArray, block::AbstractArray)
+function data_fetch{T}(ring::RingArray{T})
+    return rand(T, ring.block_size...)
+end
 
+function load_block(ring::RingArray)
+    ring.blocks[ring.next_write] = data_fetch(ring)
+    ring.range = ring.range.start:ring.range.stop + ring.block_size[1]
+    ring.next_write += 1
 end
 
 function is_full(ring::RingArray)
     return ring.max_blocks <= length(ring.blocks)
+end
+
+# Util functions
+
+function fix_zero_index(value::Int, s::Int)
+    value = value % s
+    if value == 0
+        return s
+    else
+        return value
+    end
+end
+
+function divide(value::Int, s::Int)
+    if value % s == 0
+        return div(value, s)
+    else
+        return div(value, s) + 1
+    end
 end
 
 end
