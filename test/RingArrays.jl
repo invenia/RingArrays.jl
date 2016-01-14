@@ -115,7 +115,7 @@ facts("Getting values from RingArray") do
         index = index_in_block + (block_picked - 1) * b_s[1]
 
         @fact typeof(test[index]) --> Int
-        @fact test[index] --> test.blocks[block_picked][index_in_block] "block_picked = $block_picked, index_in_block = $index_in_block, index = $index, b_s = $b_s"
+        @fact test[index] --> test.blocks[block_picked][index_in_block]
         @fact test[index] --> test[index]
     end
 
@@ -129,7 +129,78 @@ facts("Getting values from RingArray") do
         test = RingArray{Int, 2}(s, b_s)
 
         @fact typeof(test[index...]) --> Int
-        @fact test[index...] --> test.blocks[block_picked][index_in_block...] "block_picked = $block_picked, index_in_block = $index_in_block, index = $index, b_s = $b_s"
+        @fact test[index...] --> test.blocks[block_picked][index_in_block...]
         @fact test[index...] --> test[index...]
     end
 end
+
+facts("Getting values over the length of the RingArray") do
+    context("Getting the first value after overflowing") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = 1
+        index_in_block = 1
+        overflow = s * b_s[1]
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact typeof(test[index]) --> Int
+        @fact test[index] --> test.blocks[block_picked][index_in_block]
+        @fact test[index] --> test[index]
+    end
+    context("Getting any value after overflowing") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact typeof(test[index]) --> Int
+        @fact test[index] --> test.blocks[block_picked][index_in_block]
+        @fact test[index] --> test[index]
+    end
+    context("Getting any value after any number of overflows") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow * num_overflows
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact typeof(test[index]) --> Int
+        @fact test[index] --> test.blocks[block_picked][index_in_block]
+        @fact test[index] --> test[index]
+    end
+    context("Getting value from 2 d array after overflowing") do
+        s = rand(3:10)
+        b_s = (rand(1:10),rand(1:10))
+        block_picked = rand(3:s)
+        index_in_block = (rand(1:b_s[1]), rand(1:b_s[2]))
+        overflow = s * b_s[1]
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1] + overflow, index_in_block[2])
+
+        test = RingArray{Int, 2}(s, b_s)
+
+        @fact typeof(test[index...]) --> Int
+        @fact test[index...] --> test.blocks[block_picked][index_in_block...]
+        @fact test[index...] --> test[index...]
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
