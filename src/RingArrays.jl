@@ -53,7 +53,24 @@ function size{T, N}(ring::RingArray{T, N})
     end
 end
 
-checkbounds(ring::RingArray, indexes...) = true # TODO: fix!
+checkbounds(ring::RingArray) = true # because of warnings
+
+function checkbounds(ring::RingArray, indexes::UnitRange{Int64}...)
+
+    if ring.range.start > indexes[1].start
+        throw(BoundsError(ring, indexes))
+    end
+    return true
+end
+
+function checkbounds(ring::RingArray, indexes::Int...)
+
+    if ring.range.start > indexes[1]
+        throw(BoundsError(ring, indexes))
+    end
+    return true
+end
+
 getindex(ring::RingArray) = nothing # Warnings told me to make this
 
 function getindex(ring::RingArray, i::Int...)
@@ -79,8 +96,13 @@ end
 
 function load_block(ring::RingArray)
     ring.blocks[ring.next_write] = data_fetch(ring)
-    ring.range = ring.range.start:ring.range.stop + ring.block_length
     ring.next_write = fix_zero_index(ring.next_write + 1, ring.max_blocks)
+
+    if ring.range.stop < ring.max_blocks * ring.block_length
+        ring.range = ring.range.start:ring.range.stop + ring.block_length
+    else
+        ring.range = ring.range.start + ring.block_length:ring.range.stop + ring.block_length
+    end
 end
 
 # Util functions

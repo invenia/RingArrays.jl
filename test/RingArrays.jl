@@ -251,10 +251,32 @@ facts("Getting data views") do
         s = rand(3:10)
         b_l = rand(1:10)
         b_s = (b_l,)
-        block_picked = rand(2:s)
+        block_picked = rand(2:s-1)
         start = rand(1:b_l)
         last = rand(start:b_l) + b_l
         range = start:last
+        ring_range = range + (block_picked - 1) * b_l
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[ring_range.stop] # load values
+        test[ring_range]
+
+        @fact typeof(test[ring_range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
+        @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
+                                    test.blocks[block_picked + 1][1:range.stop - b_l]...]
+        @fact test[ring_range] --> test[ring_range]
+    end
+    context("looking at a portion of two blocks at overflow") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        block_picked = rand(2:s-1)
+        start = rand(1:b_l)
+        last = rand(start:b_l) + b_l
+        range = start:last
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
         ring_range = range + (block_picked - 1) * b_l
 
         test = RingArray{Int, 1}(s, b_s)
@@ -266,23 +288,122 @@ facts("Getting data views") do
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
     end
-    context("looking at a portion of two blocks at overflow") do
+end
+
+facts("Using checkbounds)") do
+    context("checking bounds before overflow without overflowing") do
         s = rand(3:10)
-        b_l = rand(1:10)
-        b_s = (b_l,)
-        block_picked = rand(2:s)
-        start = rand(1:b_l)
-        last = rand(start:b_l) + b_l
-        range = start:last
-        ring_range = range + (block_picked - 1) * b_l
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        index = index_in_block + (block_picked - 1) * b_s[1]
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[ring_range.stop] # load values
+        @fact checkbounds(test, index) --> true
+    end
+    context("checking bounds after overflow without overflowing") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
-        @fact typeof(test[ring_range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
-        @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
-                                    test.blocks[block_picked + 1][1:range.stop - b_l]...]
-        @fact test[ring_range] --> test[ring_range]
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact checkbounds(test, index) --> true
+    end
+    context("checking bounds after overflow with overflowing") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[index] # overflowing
+
+        @fact checkbounds(test, index) --> true
+    end
+    context("checking bounds before overflow with overflowing") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[index] # overflowing
+
+        @fact_throws BoundsError checkbounds(test, 1)
+    end
+    context("checking unit range bounds before overflow without overflowing") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        start = rand(1:b_l)
+        last = rand(start:b_l) + b_l
+        range = start:last
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact checkbounds(test, range) --> true
+    end
+    context("checking unit range bounds after overflow without overflowing") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        block_picked = rand(2:s-1)
+        start = rand(1:b_l)
+        last = rand(start:b_l) + b_l
+        range = start:last
+        overflow = s * b_s[1]
+        ring_range = range + (block_picked - 1) * b_l + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact checkbounds(test, ring_range) --> true
+    end
+    context("checking unit range bounds after overflow with overflowing") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        block_picked = rand(2:s-1)
+        start = rand(1:b_l)
+        last = rand(start:b_l) + b_l
+        range = start:last
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
+        ring_range = range + (block_picked - 1) * b_l + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[ring_range.stop] # overflowing
+
+        @fact checkbounds(test, ring_range) --> true
+    end
+    context("checking unit range bounds before overflow with overflowing") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        block_picked = rand(2:s-1)
+        start = rand(1:b_l)
+        last = rand(start:b_l) + b_l
+        range = start:last
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
+        ring_range = range + (block_picked - 1) * b_l + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[ring_range.stop] # overflowing
+
+        @fact_throws BoundsError checkbounds(test, 1:overflow)
     end
 end
