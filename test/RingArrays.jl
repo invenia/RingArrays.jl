@@ -266,4 +266,23 @@ facts("Getting data views") do
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
     end
+    context("looking at a portion of two blocks at overflow") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        block_picked = rand(2:s)
+        start = rand(1:b_l)
+        last = rand(start:b_l) + b_l
+        range = start:last
+        ring_range = range + (block_picked - 1) * b_l
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[ring_range.stop] # load values
+
+        @fact typeof(test[ring_range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
+        @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
+                                    test.blocks[block_picked + 1][1:range.stop - b_l]...]
+        @fact test[ring_range] --> test[ring_range]
+    end
 end

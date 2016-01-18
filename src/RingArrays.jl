@@ -1,7 +1,7 @@
 module RingArrays
 
-import Base.size, Base.getindex
-export RingArray, size
+import Base.size, Base.getindex, Base.checkbounds
+export RingArray, size, checkbounds
 
 type RingArrayOld{T, N} <: AbstractArray{T, N}
     data_type::Type
@@ -53,6 +53,7 @@ function size{T, N}(ring::RingArray{T, N})
     end
 end
 
+checkbounds(ring::RingArray, indexes...) = true # TODO: fix!
 getindex(ring::RingArray) = nothing # Warnings told me to make this
 
 function getindex(ring::RingArray, i::Int...)
