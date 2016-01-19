@@ -1,7 +1,7 @@
 module RingArrays
 
-import Base.size, Base.getindex, Base.checkbounds
-export RingArray, size, checkbounds
+import Base.size, Base.getindex, Base.checkbounds, Base.display
+export RingArray, size, checkbounds, display
 
 type RingArrayOld{T, N} <: AbstractArray{T, N}
     data_type::Type
@@ -43,6 +43,10 @@ type RingArray{T, N} <: AbstractArray{T, N}
             zeros(Int, max_blocks), block_size,
             block_size[1], 1:0)
     end
+end
+
+function display(ring::RingArray)
+    display(ring.blocks)
 end
 
 function size{T, N}(ring::RingArray{T, N})

@@ -74,6 +74,7 @@ facts("Getting values from RingArray") do
         @fact typeof(test[1]) --> Int
         @fact test[1] --> test.blocks[1][1]
         @fact test[1] --> test[1]
+        @fact test[] --> nothing
     end
     context("Getting a value in the first block") do
         s = rand(1:10)
@@ -301,6 +302,7 @@ facts("Using checkbounds)") do
         test = RingArray{Int, 1}(s, b_s)
 
         @fact checkbounds(test, index) --> true
+        @fact checkbounds(test) --> true
     end
     context("checking bounds after overflow without overflowing") do
         s = rand(3:10)
@@ -405,5 +407,19 @@ facts("Using checkbounds)") do
         test[ring_range.stop] # overflowing
 
         @fact_throws BoundsError checkbounds(test, 1:overflow)
+    end
+end
+
+facts("Using display") do
+    context("trying display on a typical RingArray") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        index = index_in_block + (block_picked - 1) * b_s[1]
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact display(test) --> nothing
     end
 end
