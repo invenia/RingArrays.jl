@@ -553,6 +553,24 @@ facts("Using checkbounds)") do
 
         @fact_throws BoundsError checkbounds(test, 1:overflow)
     end
+    context("checking unit range bounds that exceed the length of the ring") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        overflow = s * b_s[1]
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        for i in 1:s
+            load_block(test, rand(Int, test.block_size))
+        end
+
+        @fact_throws BoundsError checkbounds(test, 1:overflow + 1)
+
+        load_block(test, rand(Int, test.block_size))
+
+        @fact_throws BoundsError checkbounds(test, 1:overflow + 1)
+    end
 end
 
 facts("Using display") do
