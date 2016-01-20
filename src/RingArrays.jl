@@ -14,22 +14,7 @@ type RingArray{T, N} <: AbstractArray{T, N}
     block_length::Int
     range::UnitRange{Int}
 
-    function RingArray(max_blocks::Int, block_size::Tuple)
-        return new(1, max_blocks,
-            Array{AbstractArray{T, N}, 1}(max_blocks),
-            zeros(Int, max_blocks), block_size,
-            block_size[1], 1:0)
-    end
-    function RingArray(max_blocks::Int)
-        block_size = (10,)
-        return new(1, max_blocks,
-            Array{AbstractArray{T, N}, 1}(max_blocks),
-            zeros(Int, max_blocks), block_size,
-            block_size[1], 1:0)
-    end
-    function RingArray()
-        max_blocks = 10
-        block_size = (10,)
+    function RingArray(;max_blocks::Int=10, block_size::Tuple=(10,))
         return new(1, max_blocks,
             Array{AbstractArray{T, N}, 1}(max_blocks),
             zeros(Int, max_blocks), block_size,

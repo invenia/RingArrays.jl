@@ -9,7 +9,7 @@ facts("About creating RingArray") do
     context("passing a size") do
         s = rand(1:10)
         b_s = (10,)
-        test = RingArray{Int, 1}(s)
+        test = RingArray{Int, 1}(max_blocks=s)
 
         @fact isdefined(test.blocks, 1:s...) --> false
         @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
@@ -36,7 +36,7 @@ facts("About creating RingArray") do
     context("passing 0 for size") do
         s = 0
         b_s = (10,)
-        test = RingArray{Int, 1}(s)
+        test = RingArray{Int, 1}(max_blocks=s)
 
         @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
         @fact test.max_blocks --> s
@@ -48,12 +48,12 @@ facts("About creating RingArray") do
     end
     context("passing a negative for size") do
         s = -1
-        @fact_throws test = RingArray{Int, 1}(s)
+        @fact_throws test = RingArray{Int, 1}(max_blocks=s)
     end
     context("having a multi dimensional array") do
         s = 10
         b_s = (10,10)
-        test = RingArray{Int, 2}(s, b_s)
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s)
 
         @pending test.blocks --> Array{AbstractArray{Int64,2},1}()
         @fact test.max_blocks --> s
@@ -69,7 +69,7 @@ facts("Getting values from RingArray") do
     context("getting the first value") do
         s = rand(1:10)
         b_s = (rand(1:10),)
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:s
@@ -87,14 +87,14 @@ facts("Getting values from RingArray") do
     context("getting the first value without loading") do
         s = rand(1:10)
         b_s = (rand(1:10),)
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         @fact_throws BoundsError test[1]
     end
     context("getting a value in the first block") do
         s = rand(1:10)
         b_s = (rand(2:10),)
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
         index = rand(2:b_s[1])
 
         expected = []
@@ -112,7 +112,7 @@ facts("Getting values from RingArray") do
     context("getting a value in the second block after getting a value in the first block") do
         s = rand(2:10)
         b_s = (rand(2:10),)
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
         index = b_s[1] + 1
 
         expected = []
@@ -131,7 +131,7 @@ facts("Getting values from RingArray") do
     context("getting a value in the second block first") do
         s = rand(2:10)
         b_s = (rand(2:10),)
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
         index = b_s[1] + 1
 
         expected = []
@@ -149,7 +149,7 @@ facts("Getting values from RingArray") do
     context("getting a value in the second block first while only loading the first block") do
         s = rand(2:10)
         b_s = (rand(2:10),)
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
         index = b_s[1] + 1
 
         expected = []
@@ -165,7 +165,7 @@ facts("Getting values from RingArray") do
     context("getting a value in any block first") do
         s = rand(3:10)
         b_s = (rand(2:10),)
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
         block_picked = rand(3:s)
         index_in_block = rand(1:b_s[1])
         index = index_in_block + (block_picked - 1) * b_s[1]
@@ -189,7 +189,7 @@ facts("Getting values from RingArray") do
         index_in_block = (rand(1:b_s[1]), rand(1:b_s[2]))
         index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2])
 
-        test = RingArray{Int, 2}(s, b_s)
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:s
@@ -214,7 +214,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         overflow = s * b_s[1]
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -236,7 +236,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         overflow = s * b_s[1]
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1]
@@ -256,7 +256,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         overflow = s * b_s[1]
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -279,7 +279,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         num_overflows = rand(1:10)
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow * num_overflows
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -301,7 +301,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         overflow = s * b_s[1]
         index = (index_in_block[1] + (block_picked - 1) * b_s[1] + overflow, index_in_block[2])
 
-        test = RingArray{Int, 2}(s, b_s)
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index[1] ÷ b_s[1] + 1
@@ -327,7 +327,7 @@ facts("Getting data views") do
         last = rand(start:b_l)
         range = start:last
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:range.stop ÷ b_s[1] + 1
@@ -350,7 +350,7 @@ facts("Getting data views") do
         last = rand(start:b_l)
         range = start:last
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         @fact_throws BoundsError test[range]
     end
@@ -363,7 +363,7 @@ facts("Getting data views") do
         last = b_l
         range = start:last
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:range.stop ÷ b_s[1] + 1
@@ -387,7 +387,7 @@ facts("Getting data views") do
         range = start:last
         ring_range = range + (block_picked - 1) * b_l
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:ring_range.stop ÷ b_s[1] + 1
@@ -411,7 +411,7 @@ facts("Getting data views") do
         range = start:last
         ring_range = range + (block_picked - 1) * b_l
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:ring_range.stop ÷ b_s[1] + 1
@@ -438,7 +438,7 @@ facts("Getting data views") do
         num_overflows = rand(1:10)
         ring_range = range + (block_picked - 1) * b_l
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:ring_range.stop ÷ b_s[1] + 1
@@ -466,7 +466,7 @@ facts("Getting data views") do
         num_overflows = rand(1:10)
         ring_range = (range[1] + (block_picked - 1) * b_l, 1:b_w)
 
-        test = RingArray{Int, 2}(s, b_s)
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:ring_range[1].stop ÷ b_s[1] + 1
@@ -491,7 +491,7 @@ facts("Using checkbounds") do
         index_in_block = rand(1:b_s[1])
         index = index_in_block + (block_picked - 1) * b_s[1]
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -512,7 +512,7 @@ facts("Using checkbounds") do
         overflow = s * b_s[1]
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -532,7 +532,7 @@ facts("Using checkbounds") do
         overflow = s * b_s[1]
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -553,7 +553,7 @@ facts("Using checkbounds") do
 
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -573,7 +573,7 @@ facts("Using checkbounds") do
         last = rand(start:b_l) + b_l
         range = start:last
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:range.stop ÷ b_s[1] + 1
@@ -596,7 +596,7 @@ facts("Using checkbounds") do
         overflow = s * b_s[1]
         ring_range = range + (block_picked - 1) * b_l + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:ring_range.stop ÷ b_s[1] + 1
@@ -620,7 +620,7 @@ facts("Using checkbounds") do
         num_overflows = rand(1:10)
         ring_range = range + (block_picked - 1) * b_l + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:ring_range.stop ÷ b_s[1] + 1
@@ -644,7 +644,7 @@ facts("Using checkbounds") do
         num_overflows = rand(1:10)
         ring_range = range + (block_picked - 1) * b_l + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:ring_range.stop ÷ b_s[1] + 1
@@ -662,7 +662,7 @@ facts("Using checkbounds") do
         b_s = (b_l,)
         overflow = s * b_s[1]
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:s
@@ -689,7 +689,7 @@ facts("Using display") do
         index_in_block = rand(1:b_s[1])
         index = index_in_block + (block_picked - 1) * b_s[1]
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         @fact display(test) --> nothing
     end
@@ -704,7 +704,7 @@ facts("Using views") do
         overflow = s * b_s[1]
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -724,7 +724,7 @@ facts("Using views") do
         overflow = s * b_s[1]
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         push!(expected, rand(Int, test.block_size))
@@ -749,7 +749,7 @@ facts("Using views") do
         overflow = s * b_l
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         for i in 1:index ÷ b_s[1] + 1
@@ -770,7 +770,7 @@ facts("Using views") do
         overflow = s * b_l
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         push!(expected, rand(Int, test.block_size))
@@ -798,7 +798,7 @@ facts("Using views") do
         overflow = s * b_l
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         push!(expected, rand(Int, test.block_size))
@@ -824,7 +824,7 @@ facts("Using views") do
         overflow = s * b_l
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         push!(expected, rand(Int, test.block_size))
@@ -852,7 +852,7 @@ facts("Using views") do
         overflow = s * b_l
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         push!(expected, rand(Int, test.block_size))
@@ -882,7 +882,7 @@ facts("Using views") do
         overflow = s * b_l
         index = overflow + 1
 
-        test = RingArray{Int, 1}(s, b_s)
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
         expected = []
         push!(expected, rand(Int, test.block_size))
