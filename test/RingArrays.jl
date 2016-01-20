@@ -66,7 +66,7 @@ facts("About creating RingArray") do
 end
 
 facts("Getting values from RingArray") do
-    context("Getting the first value") do
+    context("getting the first value") do
         s = rand(1:10)
         b_s = (rand(1:10),)
         test = RingArray{Int, 1}(s, b_s)
@@ -80,14 +80,14 @@ facts("Getting values from RingArray") do
         @fact test[1] --> test[1]
         @fact test[] --> nothing
     end
-    context("Getting the first value without loading") do
+    context("getting the first value without loading") do
         s = rand(1:10)
         b_s = (rand(1:10),)
         test = RingArray{Int, 1}(s, b_s)
 
         @fact_throws BoundsError test[1]
     end
-    context("Getting a value in the first block") do
+    context("getting a value in the first block") do
         s = rand(1:10)
         b_s = (rand(2:10),)
         test = RingArray{Int, 1}(s, b_s)
@@ -101,7 +101,7 @@ facts("Getting values from RingArray") do
         @fact test[index] --> test.blocks[1][index]
         @fact test[index] --> test[index]
     end
-    context("Getting a value in the second block after getting a value in the first block") do
+    context("getting a value in the second block after getting a value in the first block") do
         s = rand(2:10)
         b_s = (rand(2:10),)
         test = RingArray{Int, 1}(s, b_s)
@@ -116,7 +116,7 @@ facts("Getting values from RingArray") do
         @fact test[index] --> test.blocks[2][1]
         @fact test[index] --> test[index]
     end
-    context("Getting a value in the second block first") do
+    context("getting a value in the second block first") do
         s = rand(2:10)
         b_s = (rand(2:10),)
         test = RingArray{Int, 1}(s, b_s)
@@ -130,7 +130,7 @@ facts("Getting values from RingArray") do
         @fact test[index] --> test.blocks[2][1]
         @fact test[index] --> test[index]
     end
-    context("Getting a value in the second block first while only loading the first block") do
+    context("getting a value in the second block first while only loading the first block") do
         s = rand(2:10)
         b_s = (rand(2:10),)
         test = RingArray{Int, 1}(s, b_s)
@@ -142,7 +142,7 @@ facts("Getting values from RingArray") do
 
         @fact_throws BoundsError test[index]
     end
-    context("Getting a value in any block first") do
+    context("getting a value in any block first") do
         s = rand(3:10)
         b_s = (rand(2:10),)
         test = RingArray{Int, 1}(s, b_s)
@@ -159,7 +159,7 @@ facts("Getting values from RingArray") do
         @fact test[index] --> test[index]
     end
 
-    context("Getting value from 2 d array") do
+    context("getting value from 2 d array") do
         s = rand(3:10)
         b_s = (rand(1:10),rand(1:10))
         block_picked = rand(3:s)
@@ -179,7 +179,7 @@ facts("Getting values from RingArray") do
 end
 
 facts("Getting values over the length (overflow) of the RingArray") do
-    context("Getting the first value after overflowing") do
+    context("getting the first value after overflowing") do
         s = rand(3:10)
         b_s = (rand(2:10),)
         block_picked = 1
@@ -197,7 +197,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         @fact test[index] --> test.blocks[block_picked][index_in_block]
         @fact test[index] --> test[index]
     end
-    context("Getting the first value after overflowing with only before overflow") do
+    context("getting the first value after overflowing with only before overflow") do
         s = rand(3:10)
         b_s = (rand(2:10),)
         block_picked = 1
@@ -213,7 +213,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
 
         @fact_throws BoundsError test[index]
     end
-    context("Getting any value after overflowing") do
+    context("getting any value after overflowing") do
         s = rand(3:10)
         b_s = (rand(2:10),)
         block_picked = rand(3:s)
@@ -231,7 +231,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         @fact test[index] --> test.blocks[block_picked][index_in_block]
         @fact test[index] --> test[index]
     end
-    context("Getting any value after any number of overflows") do
+    context("getting any value after any number of overflows") do
         s = rand(3:10)
         b_s = (rand(2:10),)
         block_picked = rand(3:s)
@@ -250,7 +250,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         @fact test[index] --> test.blocks[block_picked][index_in_block]
         @fact test[index] --> test[index]
     end
-    context("Getting value from 2 d array after overflowing") do
+    context("getting value from 2 d array after overflowing") do
         s = rand(3:10)
         b_s = (rand(1:10),rand(1:10))
         block_picked = rand(3:s)
