@@ -451,6 +451,7 @@ facts("Using views") do
         view = test[1:1]
 
         @fact_throws OverwriteError test[index]
+        @fact view --> test[1:1]
     end
     context("having the RingArray overflow to the first block when second block is in use") do
         s = rand(3:10)
@@ -466,7 +467,7 @@ facts("Using views") do
 
         @fact test[index] --> test.blocks[1][1]
     end
-    context("having a view that goes out of scope") do
+    context("having a view that goes out of scope and run gc") do
         s = rand(3:10)
         b_l = rand(2:10)
         b_s = (b_l,)
@@ -481,6 +482,22 @@ facts("Using views") do
         end
 
         gc()
+
+        @fact test[index] --> test.blocks[1][1]
+    end
+    context("having a view that goes out of scope don't run gc") do
+        s = rand(3:10)
+        b_l = rand(2:10)
+        b_s = (b_l,)
+        overflow = s * b_l
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[overflow - 1] # load values
+        let
+            local view = test[1:1]
+        end
 
         @fact test[index] --> test.blocks[1][1]
     end

@@ -108,7 +108,10 @@ end
 function load_block(ring::RingArray)
 
     if ring.num_users[ring.next_write] > 0
-        throw(OverwriteError(ring))
+        gc()
+        if ring.num_users[ring.next_write] > 0
+            throw(OverwriteError(ring))
+        end
     end
 
     ring.blocks[ring.next_write] = data_fetch(ring)
