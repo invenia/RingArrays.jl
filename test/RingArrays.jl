@@ -20,6 +20,20 @@ facts("About creating RingArray") do
         @fact test.range --> 1:0
         @fact size(test) --> tuple(b_s[1]*s,)
     end
+    context("passing a block size") do
+        s = 10
+        b_s = (10,)
+        test = RingArray{Int, 1}(block_size=b_s)
+
+        @fact isdefined(test.blocks, 1:s...) --> false
+        @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
+        @fact test.max_blocks --> s
+        @fact test.next_write --> 1
+        @fact test.num_users --> zeros(Int, s)
+        @fact test.block_size --> b_s
+        @fact test.range --> 1:0
+        @fact size(test) --> tuple(b_s[1]*s,)
+    end
     context("passing nothing") do
         s = 10
         b_s = (10,)
