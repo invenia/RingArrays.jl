@@ -5,16 +5,6 @@ using VirtualArrays
 import Base: size, getindex, checkbounds, display, RefValue
 export RingArray, size, checkbounds, display, OverwriteError, getindex, load_block
 
-type RingArrayOld{T, N} <: AbstractArray{T, N}
-    data_type::Type
-    data_dimensions::Int
-    buffer_dim::Int
-    block_size::Tuple
-    block_length::Int
-    max_blocks::Int
-    blocks::Array
-end
-
 type RingArray{T, N} <: AbstractArray{T, N}
     next_write::Int
     max_blocks::Int
