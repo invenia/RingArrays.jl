@@ -148,6 +148,10 @@ function add_users(ring::RingArray, i::UnitRange...)
     first_block = divide(i[1].start, ring.block_length)
     last_block = divide(i[1].stop, ring.block_length)
 
+    # make sure the values are loaded
+    # TODO optimize this, or have it work without needing to load values
+    ring[i[1].stop]
+
     for i in first_block:last_block
         block_index = fix_zero_index(i, ring.max_blocks)
         ring.num_users[block_index] += 1

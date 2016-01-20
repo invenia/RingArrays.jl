@@ -289,6 +289,26 @@ facts("Getting data views") do
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
     end
+    context("looking at a portion of two blocks at overflow of a 2d ring array without loading") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_w = rand(1:10)
+        b_s = (b_l,b_w)
+        block_picked = rand(2:s-1)
+        start = rand(1:b_l)
+        last = rand(start:b_l) + b_l
+        range = (start:last,1:b_w)
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
+        ring_range = (range[1] + (block_picked - 1) * b_l, 1:b_w)
+
+        test = RingArray{Int, 2}(s, b_s)
+
+        @fact typeof(test[ring_range...]) --> VirtualArrays.VirtualArray{Int64,2}
+        @fact test[ring_range...] --> [test.blocks[block_picked][range[1].start:end, range[2]];
+                                    test.blocks[block_picked + 1][1:range[1].stop - b_l, range[2]]]
+        @fact test[ring_range...] --> test[ring_range...]
+    end
 end
 
 facts("Using checkbounds)") do
@@ -498,6 +518,57 @@ facts("Using views") do
         let
             local view = test[1:1]
         end
+
+        @fact test[index] --> test.blocks[1][1]
+    end
+    context("having many views that goes out of scope don't run gc") do
+        s = rand(3:10)
+        b_l = rand(2:10)
+        b_s = (b_l,)
+        overflow = s * b_l
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[overflow - 1] # load values
+        let
+            for i in 1:rand(100:200)
+                local view = test[1:1]
+            end
+        end
+
+        @fact test[index] --> test.blocks[1][1]
+    end
+    context("having a view that stays and many views that goes out of scope don't run gc") do
+        s = rand(3:10)
+        b_l = rand(2:10)
+        b_s = (b_l,)
+        overflow = s * b_l
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[overflow - 1] # load values
+        view = test[1:1]
+        let
+            for i in 1:rand(100:200)
+                local view = test[1:1]
+            end
+        end
+
+        @fact_throws OverwriteError test[index]
+        @fact view --> test[1:1]
+    end
+    context("having the RingArray overflow to the first block when second block is in use with no loading") do
+        s = rand(3:10)
+        b_l = rand(2:10)
+        b_s = (b_l,)
+        overflow = s * b_l
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        view = test[b_l + 1:b_l + 1]
 
         @fact test[index] --> test.blocks[1][1]
     end
