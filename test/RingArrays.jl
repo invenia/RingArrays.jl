@@ -209,7 +209,7 @@ facts("Getting data views") do
 
         test[range.stop] # load values
 
-        @fact typeof(test[range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
+        @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[range] --> test.blocks[block_picked][range]
         @fact test[range] --> test[range]
     end
@@ -226,7 +226,7 @@ facts("Getting data views") do
 
         test[range.stop] # load values
 
-        @fact typeof(test[range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
+        @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[range] --> test.blocks[block_picked][range]
         @fact test[range] --> test[range]
     end
@@ -244,7 +244,7 @@ facts("Getting data views") do
 
         test[ring_range.stop] # load values
 
-        @fact typeof(test[ring_range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
+        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[ring_range] --> test.blocks[block_picked][range]
         @fact test[ring_range] --> test[ring_range]
     end
@@ -263,7 +263,7 @@ facts("Getting data views") do
         test[ring_range.stop] # load values
         test[ring_range]
 
-        @fact typeof(test[ring_range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
+        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
@@ -284,7 +284,7 @@ facts("Getting data views") do
 
         test[ring_range.stop] # load values
 
-        @fact typeof(test[ring_range]) --> SubArray{Int64,1,RingArrays.RingArray{Int64,1},Tuple{UnitRange{Int64}},0}
+        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
@@ -421,5 +421,67 @@ facts("Using display") do
         test = RingArray{Int, 1}(s, b_s)
 
         @fact display(test) --> nothing
+    end
+end
+
+facts("Using views") do
+    context("having the RingArray overflow when no views in use") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact test[index] --> test.blocks[block_picked][index_in_block]
+    end
+    context("having the RingArray overflow when first block is in use") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[overflow - 1] # load values
+        view = test[1:1]
+
+        @fact_throws OverwriteError test[index]
+    end
+    context("having the RingArray overflow to the first block when second block is in use") do
+        s = rand(3:10)
+        b_l = rand(2:10)
+        b_s = (b_l,)
+        overflow = s * b_l
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[overflow - 1] # load values
+        view = test[b_l + 1:b_l + 1]
+
+        @fact test[index] --> test.blocks[1][1]
+    end
+    context("having a view that goes out of scope") do
+        s = rand(3:10)
+        b_l = rand(2:10)
+        b_s = (b_l,)
+        overflow = s * b_l
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        test[overflow - 1] # load values
+        let
+            local view = test[1:1]
+        end
+
+        gc()
+
+        @fact test[index] --> test.blocks[1][1]
     end
 end

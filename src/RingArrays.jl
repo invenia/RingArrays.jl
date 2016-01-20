@@ -1,7 +1,9 @@
 module RingArrays
 
-import Base.size, Base.getindex, Base.checkbounds, Base.display
-export RingArray, size, checkbounds, display
+using VirtualArrays
+
+import Base: size, getindex, checkbounds, display, RefValue, ==
+export RingArray, size, checkbounds, display, OverwriteError, getindex, ==
 
 type RingArrayOld{T, N} <: AbstractArray{T, N}
     data_type::Type
@@ -43,6 +45,10 @@ type RingArray{T, N} <: AbstractArray{T, N}
             zeros(Int, max_blocks), block_size,
             block_size[1], 1:0)
     end
+end
+
+type OverwriteError <: Exception
+    ring::RingArray
 end
 
 function display(ring::RingArray)
@@ -91,7 +97,8 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
-    return sub(ring, i...)
+    add_users(ring, i...)
+    return get_view(ring, i...)
 end
 
 function data_fetch{T}(ring::RingArray{T})
@@ -99,6 +106,11 @@ function data_fetch{T}(ring::RingArray{T})
 end
 
 function load_block(ring::RingArray)
+
+    if ring.num_users[ring.next_write] > 0
+        throw(OverwriteError(ring))
+    end
+
     ring.blocks[ring.next_write] = data_fetch(ring)
     ring.next_write = fix_zero_index(ring.next_write + 1, ring.max_blocks)
 
@@ -127,6 +139,47 @@ function divide(value::Int, s::Int)
         return div(value, s) + 1
     end
 end
+
+function add_users(ring::RingArray, i::UnitRange...)
+
+    first_block = divide(i[1].start, ring.block_length)
+    last_block = divide(i[1].stop, ring.block_length)
+
+    for i in first_block:last_block
+        block_index = fix_zero_index(i, ring.max_blocks)
+        ring.num_users[block_index] += 1
+    end
+
+end
+
+function remove_users(ring::RingArray, i::UnitRange...)
+
+    first_block = divide(i[1].start, ring.block_length)
+    last_block = divide(i[1].stop, ring.block_length)
+
+    for i in first_block:last_block
+        block_index = fix_zero_index(i, ring.max_blocks)
+        ring.num_users[block_index] -= 1
+    end
+
+end
+
+function get_view(ring::RingArray, i::UnitRange...)
+
+    view = virtual_vcat(sub(ring, i...))
+
+    first_block = divide(i[1].start, ring.block_length)
+    last_block = divide(i[1].stop, ring.block_length)
+
+    function when_done(view)
+        remove_users(ring, i...)
+    end
+
+    finalizer(view, when_done)
+
+    return view
+end
+
 
 end
 
