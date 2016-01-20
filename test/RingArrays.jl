@@ -80,6 +80,13 @@ facts("Getting values from RingArray") do
         @fact test[1] --> test[1]
         @fact test[] --> nothing
     end
+    context("Getting the first value without loading") do
+        s = rand(1:10)
+        b_s = (rand(1:10),)
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact_throws BoundsError test[1]
+    end
     context("Getting a value in the first block") do
         s = rand(1:10)
         b_s = (rand(2:10),)
@@ -122,6 +129,18 @@ facts("Getting values from RingArray") do
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[2][1]
         @fact test[index] --> test[index]
+    end
+    context("Getting a value in the second block first while only loading the first block") do
+        s = rand(2:10)
+        b_s = (rand(2:10),)
+        test = RingArray{Int, 1}(s, b_s)
+        index = b_s[1] + 1
+
+        for i in 1:1
+            load_block(test, rand(Int, test.block_size))
+        end
+
+        @fact_throws BoundsError test[index]
     end
     context("Getting a value in any block first") do
         s = rand(3:10)
@@ -177,6 +196,22 @@ facts("Getting values over the length (overflow) of the RingArray") do
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[block_picked][index_in_block]
         @fact test[index] --> test[index]
+    end
+    context("Getting the first value after overflowing with only before overflow") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = 1
+        index_in_block = 1
+        overflow = s * b_s[1]
+        index = overflow + 1
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        for i in 1:index ÷ b_s[1]
+            load_block(test, rand(Int, test.block_size))
+        end
+
+        @fact_throws BoundsError test[index]
     end
     context("Getting any value after overflowing") do
         s = rand(3:10)
@@ -254,6 +289,19 @@ facts("Getting data views") do
         @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[range] --> test.blocks[block_picked][range]
         @fact test[range] --> test[range]
+    end
+    context("looking at a small portion of the first block without loading") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        block_picked = 1
+        start = rand(1:b_l)
+        last = rand(start:b_l)
+        range = start:last
+
+        test = RingArray{Int, 1}(s, b_s)
+
+        @fact_throws BoundsError test[range]
     end
     context("looking at a the whole portion of the first block") do
         s = rand(3:10)
