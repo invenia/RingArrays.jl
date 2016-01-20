@@ -71,6 +71,10 @@ facts("Getting values from RingArray") do
         b_s = (rand(1:10),)
         test = RingArray{Int, 1}(s, b_s)
 
+        for i in 1:s
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact typeof(test[1]) --> Int
         @fact test[1] --> test.blocks[1][1]
         @fact test[1] --> test[1]
@@ -82,6 +86,10 @@ facts("Getting values from RingArray") do
         test = RingArray{Int, 1}(s, b_s)
         index = rand(2:b_s[1])
 
+        for i in 1:s
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[1][index]
         @fact test[index] --> test[index]
@@ -91,6 +99,10 @@ facts("Getting values from RingArray") do
         b_s = (rand(2:10),)
         test = RingArray{Int, 1}(s, b_s)
         index = b_s[1] + 1
+
+        for i in 1:s
+            load_block(test, rand(Int, test.block_size))
+        end
 
         test[1] # Need to get a value in the first block first
         @fact typeof(test[index]) --> Int
@@ -103,6 +115,10 @@ facts("Getting values from RingArray") do
         test = RingArray{Int, 1}(s, b_s)
         index = b_s[1] + 1
 
+        for i in 1:s
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[2][1]
         @fact test[index] --> test[index]
@@ -114,6 +130,10 @@ facts("Getting values from RingArray") do
         block_picked = rand(3:s)
         index_in_block = rand(1:b_s[1])
         index = index_in_block + (block_picked - 1) * b_s[1]
+
+        for i in 1:s
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[block_picked][index_in_block]
@@ -129,13 +149,17 @@ facts("Getting values from RingArray") do
 
         test = RingArray{Int, 2}(s, b_s)
 
+        for i in 1:s
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact typeof(test[index...]) --> Int
         @fact test[index...] --> test.blocks[block_picked][index_in_block...]
         @fact test[index...] --> test[index...]
     end
 end
 
-facts("Getting values over the length of the RingArray") do
+facts("Getting values over the length (overflow) of the RingArray") do
     context("Getting the first value after overflowing") do
         s = rand(3:10)
         b_s = (rand(2:10),)
@@ -145,6 +169,10 @@ facts("Getting values over the length of the RingArray") do
         index = overflow + 1
 
         test = RingArray{Int, 1}(s, b_s)
+
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[block_picked][index_in_block]
@@ -159,6 +187,10 @@ facts("Getting values over the length of the RingArray") do
         index = index_in_block + (block_picked - 1) * b_s[1] + overflow
 
         test = RingArray{Int, 1}(s, b_s)
+
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[block_picked][index_in_block]
@@ -175,6 +207,10 @@ facts("Getting values over the length of the RingArray") do
 
         test = RingArray{Int, 1}(s, b_s)
 
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact typeof(test[index]) --> Int
         @fact test[index] --> test.blocks[block_picked][index_in_block]
         @fact test[index] --> test[index]
@@ -188,6 +224,10 @@ facts("Getting values over the length of the RingArray") do
         index = (index_in_block[1] + (block_picked - 1) * b_s[1] + overflow, index_in_block[2])
 
         test = RingArray{Int, 2}(s, b_s)
+
+        for i in 1:index[1] ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[index...]) --> Int
         @fact test[index...] --> test.blocks[block_picked][index_in_block...]
@@ -207,7 +247,9 @@ facts("Getting data views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[range.stop] # load values
+        for i in 1:range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[range] --> test.blocks[block_picked][range]
@@ -224,7 +266,9 @@ facts("Getting data views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[range.stop] # load values
+        for i in 1:range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[range] --> test.blocks[block_picked][range]
@@ -242,7 +286,9 @@ facts("Getting data views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[ring_range.stop] # load values
+        for i in 1:ring_range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[ring_range] --> test.blocks[block_picked][range]
@@ -260,8 +306,9 @@ facts("Getting data views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[ring_range.stop] # load values
-        test[ring_range]
+        for i in 1:ring_range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
@@ -282,14 +329,16 @@ facts("Getting data views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[ring_range.stop] # load values
+        for i in 1:ring_range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
         @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
     end
-    context("looking at a portion of two blocks at overflow of a 2d ring array without loading") do
+    context("looking at a portion of two blocks at overflow of a 2d ring array") do
         s = rand(3:10)
         b_l = rand(1:10)
         b_w = rand(1:10)
@@ -303,6 +352,10 @@ facts("Getting data views") do
         ring_range = (range[1] + (block_picked - 1) * b_l, 1:b_w)
 
         test = RingArray{Int, 2}(s, b_s)
+
+        for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact typeof(test[ring_range...]) --> VirtualArrays.VirtualArray{Int64,2}
         @fact test[ring_range...] --> [test.blocks[block_picked][range[1].start:end, range[2]];
@@ -321,6 +374,10 @@ facts("Using checkbounds)") do
 
         test = RingArray{Int, 1}(s, b_s)
 
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact checkbounds(test, index) --> true
         @fact checkbounds(test) --> true
     end
@@ -334,6 +391,10 @@ facts("Using checkbounds)") do
 
         test = RingArray{Int, 1}(s, b_s)
 
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact checkbounds(test, index) --> true
     end
     context("checking bounds after overflow with overflowing") do
@@ -346,7 +407,9 @@ facts("Using checkbounds)") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[index] # overflowing
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact checkbounds(test, index) --> true
     end
@@ -361,7 +424,9 @@ facts("Using checkbounds)") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[index] # overflowing
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact_throws BoundsError checkbounds(test, 1)
     end
@@ -374,6 +439,10 @@ facts("Using checkbounds)") do
         range = start:last
 
         test = RingArray{Int, 1}(s, b_s)
+
+        for i in 1:range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact checkbounds(test, range) --> true
     end
@@ -389,6 +458,10 @@ facts("Using checkbounds)") do
         ring_range = range + (block_picked - 1) * b_l + overflow
 
         test = RingArray{Int, 1}(s, b_s)
+
+        for i in 1:ring_range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact checkbounds(test, ring_range) --> true
     end
@@ -406,7 +479,9 @@ facts("Using checkbounds)") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[ring_range.stop] # overflowing
+        for i in 1:ring_range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact checkbounds(test, ring_range) --> true
     end
@@ -424,7 +499,9 @@ facts("Using checkbounds)") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[ring_range.stop] # overflowing
+        for i in 1:ring_range.stop ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact_throws BoundsError checkbounds(test, 1:overflow)
     end
@@ -455,6 +532,10 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
+
         @fact test[index] --> test.blocks[block_picked][index_in_block]
     end
     context("having the RingArray overflow when first block is in use") do
@@ -467,10 +548,15 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[overflow - 1] # load values
+        load_block(test, rand(Int, test.block_size))
+
         view = test[1:1]
 
-        @fact_throws OverwriteError test[index]
+        for i in 2:overflow ÷ b_s[1]
+            @fact load_block(test, rand(Int, test.block_size)) --> nothing
+        end
+
+        @fact_throws OverwriteError load_block(test, rand(Int, test.block_size))
         @fact view --> test[1:1]
     end
     context("having the RingArray overflow to the first block when second block is in use") do
@@ -482,7 +568,10 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[overflow - 1] # load values
+        for i in 1:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
+
         view = test[b_l + 1:b_l + 1]
 
         @fact test[index] --> test.blocks[1][1]
@@ -496,12 +585,17 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[overflow - 1] # load values
+        load_block(test, rand(Int, test.block_size))
+
         let
             local view = test[1:1]
         end
 
         gc()
+
+        for i in 2:index ÷ b_s[1] + 1
+            @fact load_block(test, rand(Int, test.block_size)) --> nothing
+        end
 
         @fact test[index] --> test.blocks[1][1]
     end
@@ -514,9 +608,14 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[overflow - 1] # load values
+        load_block(test, rand(Int, test.block_size))
+
         let
             local view = test[1:1]
+        end
+
+        for i in 2:index ÷ b_s[1] + 1
+            @fact load_block(test, rand(Int, test.block_size)) --> nothing
         end
 
         @fact test[index] --> test.blocks[1][1]
@@ -530,11 +629,16 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[overflow - 1] # load values
+        load_block(test, rand(Int, test.block_size))
+
         let
             for i in 1:rand(100:200)
                 local view = test[1:1]
             end
+        end
+
+        for i in 2:index ÷ b_s[1] + 1
+            @fact load_block(test, rand(Int, test.block_size)) --> nothing
         end
 
         @fact test[index] --> test.blocks[1][1]
@@ -548,7 +652,8 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
-        test[overflow - 1] # load values
+        load_block(test, rand(Int, test.block_size))
+
         view = test[1:1]
         let
             for i in 1:rand(100:200)
@@ -556,10 +661,14 @@ facts("Using views") do
             end
         end
 
-        @fact_throws OverwriteError test[index]
+        for i in 2:index ÷ b_s[1]
+            @fact load_block(test, rand(Int, test.block_size)) --> nothing
+        end
+
+        @fact_throws OverwriteError load_block(test, rand(Int, test.block_size))
         @fact view --> test[1:1]
     end
-    context("having the RingArray overflow to the first block when second block is in use with no loading") do
+    context("having the RingArray overflow to the first block when second block is in use") do
         s = rand(3:10)
         b_l = rand(2:10)
         b_s = (b_l,)
@@ -568,7 +677,14 @@ facts("Using views") do
 
         test = RingArray{Int, 1}(s, b_s)
 
+        load_block(test, rand(Int, test.block_size))
+        load_block(test, rand(Int, test.block_size))
+
         view = test[b_l + 1:b_l + 1]
+
+        for i in 3:index ÷ b_s[1] + 1
+            load_block(test, rand(Int, test.block_size))
+        end
 
         @fact test[index] --> test.blocks[1][1]
     end

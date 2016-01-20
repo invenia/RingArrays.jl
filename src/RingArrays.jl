@@ -2,8 +2,8 @@ module RingArrays
 
 using VirtualArrays
 
-import Base: size, getindex, checkbounds, display, RefValue, ==
-export RingArray, size, checkbounds, display, OverwriteError, getindex, ==
+import Base: size, getindex, checkbounds, display, RefValue
+export RingArray, size, checkbounds, display, OverwriteError, getindex, load_block
 
 type RingArrayOld{T, N} <: AbstractArray{T, N}
     data_type::Type
@@ -67,7 +67,7 @@ checkbounds(ring::RingArray) = true # because of warnings
 
 function checkbounds(ring::RingArray, indexes::UnitRange{Int64}...)
 
-    if ring.range.start > indexes[1].start
+    if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
         throw(BoundsError(ring, indexes))
     end
     return true
@@ -75,7 +75,7 @@ end
 
 function checkbounds(ring::RingArray, indexes::Int...)
 
-    if ring.range.start > indexes[1]
+    if ring.range.start > indexes[1] || ring.range.stop < indexes[1]
         throw(BoundsError(ring, indexes))
     end
     return true
@@ -84,11 +84,8 @@ end
 getindex(ring::RingArray) = nothing # Warnings told me to make this
 
 function getindex(ring::RingArray, i::Int...)
+    checkbounds(ring, i...)
     result = 0
-
-    while ring.range.stop < i[1]
-        load_block(ring)
-    end
 
     block_index = fix_zero_index(divide(i[1], ring.block_length), ring.max_blocks)
     index = collect([fix_zero_index(i[1], ring.block_length), i[2:end]...])
@@ -97,15 +94,12 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
+    checkbounds(ring, i...)
     add_users(ring, i...)
     return get_view(ring, i...)
 end
 
-function data_fetch{T}(ring::RingArray{T})
-    return rand(T, ring.block_size...)
-end
-
-function load_block(ring::RingArray)
+function load_block{T, N}(ring::RingArray{T ,N}, block::AbstractArray{T, N})
 
     if ring.num_users[ring.next_write] > 0
         gc()
@@ -114,7 +108,7 @@ function load_block(ring::RingArray)
         end
     end
 
-    ring.blocks[ring.next_write] = data_fetch(ring)
+    ring.blocks[ring.next_write] = block
     ring.next_write = fix_zero_index(ring.next_write + 1, ring.max_blocks)
 
     if ring.range.stop < ring.max_blocks * ring.block_length
@@ -122,6 +116,7 @@ function load_block(ring::RingArray)
     else
         ring.range = ring.range.start + ring.block_length:ring.range.stop + ring.block_length
     end
+    nothing
 end
 
 # Util functions
@@ -150,7 +145,7 @@ function add_users(ring::RingArray, i::UnitRange...)
 
     # make sure the values are loaded
     # TODO optimize this, or have it work without needing to load values
-    ring[i[1].stop]
+    #ring[i[1].stop]
 
     for i in first_block:last_block
         block_index = fix_zero_index(i, ring.max_blocks)
