@@ -221,7 +221,7 @@ facts("Getting values from RingArray") do
         s = rand(3:10)
         b_s = (rand(1:10),rand(1:10))
         block_picked = rand(3:s)
-        index_in_block = (rand(1:b_s[1]), rand(1:b_s[2]))
+        index_in_block = (rand(1:b_s[1]))
         index = (index_in_block[1] + (block_picked - 1) * b_s[1])
 
         test = RingArray{Int, 2}(max_blocks=s, block_size=b_s)
@@ -234,6 +234,40 @@ facts("Getting values from RingArray") do
         expected = cat(1, expected...)
 
         @fact_throws ErrorException test[index...]
+    end
+    context("getting value from N d array") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2:end]...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:s
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact typeof(test[index...]) --> Int
+        @fact test[index...] --> test.blocks[block_picked][index_in_block...]
+        @fact test[index...] --> test[index...]
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
     end
 end
 
@@ -346,6 +380,42 @@ facts("Getting values over the length (overflow) of the RingArray") do
         @fact test[index...] --> test.blocks[block_picked][index_in_block...]
         @fact test[index...] --> test[index...]
         @fact test[test.range, 1:b_s[2]] --> expected[test.range, 1:b_s[2]]
+    end
+    context("getting value from N d array after any number of overflows") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows, index_in_block[2:end]...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:index[1] ÷ b_s[1] + 1
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact typeof(test[index...]) --> Int
+        @fact test[index...] --> test.blocks[block_picked][index_in_block...]
+        @fact test[index...] --> test[index...]
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
     end
 end
 
@@ -512,6 +582,49 @@ facts("Getting data views") do
                                     test.blocks[block_picked + 1][1:range[1].stop - b_l, range[2]]]
         @fact test[ring_range...] --> test[ring_range...]
         @fact test[test.range, 1:b_w] --> expected[test.range, 1:b_w]
+    end
+    context("looking at a portion from one block from N d array after any number of overflows") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
+        ranges = []
+        for i in 1:num_dimensions
+            start = rand(1:b_s[i])
+            last = rand(start:b_s[i])
+            push!(ranges, start:last)
+        end
+        ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows, ranges[2:end]...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        @fact typeof(test[ring_range...]) --> VirtualArrays.VirtualArray{Int64, num_dimensions}
+        @fact test[ring_range...] --> test.blocks[block_picked][ranges...]
+        @fact test[ring_range...] --> test[ring_range...]
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
     end
 end
 
