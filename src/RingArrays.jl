@@ -59,6 +59,7 @@ end
 getindex(ring::RingArray) = nothing # Warnings told me to make this
 
 function getindex(ring::RingArray, i::Int...)
+    check_index(ring, i...)
     checkbounds(ring, i...)
     result = 0
 
@@ -69,6 +70,7 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
+    check_index(ring, i...)
     checkbounds(ring, i...)
     add_users(ring, i...)
     return get_view(ring, i...)
@@ -95,6 +97,12 @@ function load_block{T, N}(ring::RingArray{T ,N}, block::AbstractArray{T, N})
 end
 
 # Util functions
+
+function check_index{T, N}(ring::RingArray{T, N}, i...)
+    if length(i) != N
+        throw(ErrorException("$i does not match $N dimensions"))
+    end
+end
 
 function fix_zero_index(value::Int, s::Int)
     value = value % s

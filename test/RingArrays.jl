@@ -215,7 +215,25 @@ facts("Getting values from RingArray") do
         @fact typeof(test[index...]) --> Int
         @fact test[index...] --> test.blocks[block_picked][index_in_block...]
         @fact test[index...] --> test[index...]
-        @fact test[test.range] --> expected[test.range]
+        @fact test[test.range, 1:b_s[2]] --> expected[test.range, 1:b_s[2]]
+    end
+    context("getting value from 2 d array like a 1 d array") do
+        s = rand(3:10)
+        b_s = (rand(1:10),rand(1:10))
+        block_picked = rand(3:s)
+        index_in_block = (rand(1:b_s[1]), rand(1:b_s[2]))
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1])
+
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:s
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        @fact_throws ErrorException test[index...]
     end
 end
 
@@ -327,7 +345,7 @@ facts("Getting values over the length (overflow) of the RingArray") do
         @fact typeof(test[index...]) --> Int
         @fact test[index...] --> test.blocks[block_picked][index_in_block...]
         @fact test[index...] --> test[index...]
-        @fact test[test.range] --> expected[test.range]
+        @fact test[test.range, 1:b_s[2]] --> expected[test.range, 1:b_s[2]]
     end
 end
 
@@ -493,7 +511,7 @@ facts("Getting data views") do
         @fact test[ring_range...] --> [test.blocks[block_picked][range[1].start:end, range[2]];
                                     test.blocks[block_picked + 1][1:range[1].stop - b_l, range[2]]]
         @fact test[ring_range...] --> test[ring_range...]
-        @fact test[test.range] --> expected[test.range]
+        @fact test[test.range, 1:b_w] --> expected[test.range, 1:b_w]
     end
 end
 
