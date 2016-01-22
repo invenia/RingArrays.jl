@@ -138,6 +138,58 @@ The output is,
 
 The output shows that the value we get from the RingArray is identical to the value we get from the 'big_array' we are looking at. The difference here is that the RingArray contains a max for `4 * 2 = 8` elements.
 
+#### Range Indexing
+
+You can even use ranges to index into a RingArray, just like the 'big array'.
+
+```
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+big_array = rand(Int, 100);
+for i in 1:2:6
+    load_block(ring, big_array[i:i+1]);
+end
+display(big_array[3:5])
+display(ring[3:5])
+for i in 7:2:99
+    load_block(ring, big_array[i:i+1]);
+end
+display(big_array[93:100])
+display(ring[93:100])
+```
+
+The output is,
+
+```
+3-element Array{Int64,1}:
+  4888954431626633721
+  -735569853239964777
+ -2209041541700469789
+3-element VirtualArrays.VirtualArray{Int64,1}:
+  4888954431626633721
+  -735569853239964777
+ -2209041541700469789
+8-element Array{Int64,1}:
+ -8890283379952347965
+  6099240732283067744
+  1774549867342630701
+ -7876908337657579670
+  -655444807932357004
+  6237563287695816159
+  9143358181757180448
+  5233312637010446397
+8-element VirtualArrays.VirtualArray{Int64,1}:
+ -8890283379952347965
+  6099240732283067744
+  1774549867342630701
+ -7876908337657579670
+  -655444807932357004
+  6237563287695816159
+  9143358181757180448
+  5233312637010446397
+```
+
+All the values are the same. One thing to note is that the values returned are stored into a VirtualArray. It should act just like an array you would get from the 'big array' except will save on memory usage.
+
 ### Expansions
 
 The RingArray expects that the blocks stack on the first dimensions, so that the RingArray will expanded along the first dimension.
