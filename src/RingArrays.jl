@@ -15,6 +15,9 @@ type RingArray{T, N} <: AbstractArray{T, N}
     range::UnitRange{Int}
 
     function RingArray(;max_blocks::Int=10, block_size::Tuple=(10,))
+        if length(block_size) != N
+            throw(DimensionMismatch("block size $(block_size) does not match dimension of RingArray $(N)"))
+        end
         return new(1, max_blocks,
             Array{AbstractArray{T, N}, 1}(max_blocks),
             zeros(Int, max_blocks), block_size,

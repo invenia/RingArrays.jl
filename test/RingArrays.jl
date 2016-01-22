@@ -77,6 +77,21 @@ facts("About creating RingArray") do
         @fact test.range --> 1:0
         @fact size(test) --> tuple(b_s[1]*s, b_s[2:end]...)
     end
+    context("creating a RingArray of dimension of the RingArray different form the ") do
+        s = 10
+        b_s = (10,10,10)
+        dim = 2
+        @fact_throws DimensionMismatch RingArray{Int, dim}(max_blocks=s, block_size=b_s)
+
+        test_error = 1
+        try
+            RingArray{Int, dim}(max_blocks=s, block_size=b_s)
+        catch e
+            test_error = e
+        end
+
+        @fact test_error.msg --> "block size $(b_s) does not match dimension of RingArray $(dim)"
+    end
 end
 
 facts("Getting values from RingArray") do
