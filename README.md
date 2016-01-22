@@ -8,7 +8,14 @@ The idea of the RingArray is that is should act like a sliding window on a massi
 
 ## Read Only
 
-The RingArray is in a read only state.
+The RingArray is in a read only state. Trying to set a value will throw this error.
+
+```julia
+julia> ring[99] = 1
+ERROR: indexing not defined for RingArrays.RingArray{Int64,1}
+ in setindex! at ./abstractarray.jl:584
+ in eval at ./boot.jl:265
+```
 
 ## Usage
 
@@ -16,7 +23,7 @@ The RingArray is in a read only state.
 
 Creating a RingArray only needs two values, both of which have default if you pass nothing.
 
-```
+```julia
 ring = RingArray{Int, 3}(max_blocks=10, block_size=(10,10,10))
 ```
 
@@ -28,7 +35,7 @@ ring = RingArray{Int, 3}(max_blocks=10, block_size=(10,10,10))
 
 RingArrays need there blocks to be loaded manually.
 
-```
+```julia
 ring = RingArray{Int, 1}(max_blocks=5, block_size=(2,));
 data = rand(Int64, ring.block_size);
 load_block(ring, data);
@@ -40,7 +47,7 @@ display(ring)
 
 The output is,
 
-```
+```julia
 5-element Array{AbstractArray{Int64,1},1}:
     [3786009800613455090,1882121033597674828]
  #undef                                      
@@ -61,7 +68,7 @@ As you can see, the first display shows the first block loaded and the second di
 
 When you load more blocks than your RingArray can handle, it will begin to overwrite blocks, starting with the oldest.
 
-```
+```julia
 ring = RingArray{Int, 1}(max_blocks=5, block_size=(2,));
 for i in 1:4
     data = rand(Int64, ring.block_size);
@@ -78,7 +85,7 @@ display(ring)
 
 The output is,
 
-```
+```julia
 5-element Array{AbstractArray{Int64,1},1}:
     [-5440869056910226509,1048203488083884946]
     [-5465828022146027573,2059040906267543744]
@@ -105,7 +112,7 @@ In the last display, we can see that the first row of values have been overwritt
 
 A RingArray can be accessed like the array it is 'sliding' over.
 
-```
+```julia
 ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
 big_array = rand(Int, 100);
 for i in 1:2:6
@@ -127,7 +134,7 @@ display(ring[99])
 
 The output is,
 
-```
+```julia
 8138703126850143818
 8138703126850143818
 8704347357339359336
@@ -142,7 +149,7 @@ The output shows that the value we get from the RingArray is identical to the va
 
 You can even use ranges to index into a RingArray, just like the 'big array'.
 
-```
+```julia
 ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
 big_array = rand(Int, 100);
 for i in 1:2:6
@@ -159,7 +166,7 @@ display(ring[93:100])
 
 The output is,
 
-```
+```julia
 3-element Array{Int64,1}:
   4888954431626633721
   -735569853239964777
