@@ -11,7 +11,7 @@ The idea of the RingArray is that is should act like a sliding window on a massi
 The RingArray is in a read only state. Trying to set a value will throw this error.
 
 ```julia
-julia> ring[99] = 1
+julia> ring[1] = 1
 ERROR: indexing not defined for RingArrays.RingArray{Int64,1}
  in setindex! at ./abstractarray.jl:584
  in eval at ./boot.jl:265
@@ -145,7 +145,7 @@ The output is,
 
 The output shows that the value we get from the RingArray is identical to the value we get from the 'big_array' we are looking at. The difference here is that the RingArray contains a max for `4 * 2 = 8` elements.
 
-#### Range Indexing
+#### Range Indexing/Views
 
 You can even use ranges to index into a RingArray, just like the 'big array'.
 
@@ -197,6 +197,47 @@ The output is,
 
 All the values are the same. One thing to note is that the values returned are stored into a VirtualArray. It should act just like an array you would get from the 'big array' except will save on memory usage.
 
+### Reference Counting
+
+Since views are affected by the sliding window, the RingArray keeps track of the number of views currently exists.
+
 ### Expansions
 
 The RingArray expects that the blocks stack on the first dimensions, so that the RingArray will expanded along the first dimension.
+
+## Memory Usage
+
+It is rather difficult to show how little memory a RingArray will take in comparison to its array counterpart. What I was able to show is how much memory a RingArray has in comparison of the array it is sliding along.
+
+```julia
+ring = RingArray{Int, 3}(max_blocks=10, block_size=(100,100,100));
+big_array = rand(Int, 100000, 100, 100);
+for i in 1:100:10000
+    load_block(ring, big_array[i:i+99,1:end,1:end]);
+end
+whos()
+for i in 10001:100:100000
+    load_block(ring, big_array[i:i+99,1:end,1:end]);
+end
+whos()
+```
+
+The output is, (only showing what's important)
+
+```
+.
+.
+.
+                     big_array 7812500 KB     100000x100x100 Array{Int64,3}
+                          ring  78125 KB     1000x100x100 RingArrays.RingArray{Int64,3}
+.
+.
+.
+                     big_array 7812500 KB     100000x100x100 Array{Int64,3}
+                          ring  78125 KB     1000x100x100 RingArrays.RingArray{Int64,3}
+.
+.
+.
+```
+
+From the output, we see that in both cases, the RingArray keeps a constant size of `78125 KB` which is much smaller than the 'big array' at `7812500 KB`.
