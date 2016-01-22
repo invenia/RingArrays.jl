@@ -1047,3 +1047,73 @@ facts("Using views") do
         @fact test[test.range] --> expected[test.range]
     end
 end
+
+############################################################################################
+# LOADING BLOCKS
+############################################################################################
+
+facts("Loading blocks in RingArray") do
+    context("loading the first block") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
+
+        @fact load_block(test, rand(Int, test.block_size)) --> nothing
+    end
+    context("loading lots of blocks") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
+
+        for i in 1:100
+            @fact load_block(test, rand(Int, test.block_size)) --> nothing
+        end
+    end
+    context("loading a block of different size") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
+
+        wrong_size = (test.block_size[1] + 1,)
+
+        @fact_throws DimensionMismatch load_block(test, rand(Int, wrong_size))
+
+        test_error = 1
+        try
+            load_block(test, rand(Int, wrong_size))
+        catch e
+            test_error = e
+        end
+
+        @fact test_error.msg --> "block size $(wrong_size) does not match what RingArray expects $(b_s)"
+    end
+    context("loading a block of different dimensions") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        block_picked = rand(3:s)
+        index_in_block = rand(1:b_s[1])
+        overflow = s * b_s[1]
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
+
+        wrong_size = (test.block_size[1], test.block_size[1])
+
+        @fact_throws MethodError load_block(test, rand(Int, wrong_size))
+    end
+end

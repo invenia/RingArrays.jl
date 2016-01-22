@@ -77,7 +77,7 @@ function getindex(ring::RingArray, i::UnitRange...)
 end
 
 function load_block{T, N}(ring::RingArray{T ,N}, block::AbstractArray{T, N})
-
+    check_dimensions(ring, block)
     if ring.num_users[ring.next_write] > 0
         gc()
         if ring.num_users[ring.next_write] > 0
@@ -165,6 +165,11 @@ function get_view(ring::RingArray, i::UnitRange...)
     return view
 end
 
+function check_dimensions(ring::RingArray, block::AbstractArray)
+    if ring.block_size != size(block)
+        throw(DimensionMismatch("block size $(size(block)) does not match what RingArray expects $(ring.block_size)"))
+    end
+end
 
 end
 
