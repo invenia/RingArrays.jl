@@ -1022,7 +1022,8 @@ facts("Using checkbounds") do
             push!(index_in_block, rand(1:b_s[i]))
         end
         overflow = s * b_s[1]
-        index = (index_in_block[1] + (block_picked - 1) * b_s[1] + overflow, index_in_block[2:end]...)
+        index_in_block[rand(2:num_dimensions)] += overflow
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2:end]...)
 
         test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
 
@@ -1053,6 +1054,49 @@ facts("Using checkbounds") do
 
         range = tuple(test.range, test.block_size[2:end]...)
         @fact occured.data --> "RingArrayBoundsError: Cannot index $((index...,)), outside of range $range".data
+    end
+    context("checking range indexing of N d RingArray") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        overflow = s * b_s[1]
+        index_in_block[rand(2:num_dimensions)] += overflow
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2:end]...)
+
+        num_overflows = rand(1:10)
+        ranges = []
+        for i in 1:num_dimensions
+            start = rand(1:b_s[i])
+            last = rand(start:b_s[i])
+            push!(ranges, start:last)
+        end
+        ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows, ranges[2:end]...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact checkbounds(test, ring_range...) --> true
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
     end
 end
 
