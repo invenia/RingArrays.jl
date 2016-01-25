@@ -197,9 +197,82 @@ The output is,
 
 All the values are the same. One thing to note is that the values returned are stored into a VirtualArray. It should act just like an array you would get from the 'big array' except will save on memory usage.
 
+### Where you can index
+
+Since the RingArray is suppose to be treated like a sliding window over a larger array, our indexes must be within the window the RingArray currently has. In the example below, we output the ranges the RingArray has:
+
+```julia
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+big_array = rand(Int, 100);
+for i in 1:2:6
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+display(big_array[3])
+display(ring[3])
+for i in 7:2:12
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+display(big_array[8])
+display(ring[8])
+for i in 13:2:99
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+display(big_array[99])
+display(ring[99])
+```
+
+The output is,
+
+```julia
+6-element UnitRange{Int64}:
+ 1,2,3,4,5,6
+-5471073722013832555
+-5471073722013832555
+8-element UnitRange{Int64}:
+ 5,6,7,8,9,10,11,12
+4049429779710085286
+4049429779710085286
+8-element UnitRange{Int64}:
+ 93,94,95,96,97,98,99,100
+-7554212529707423474
+-7554212529707423474
+```
+
+Anything between `ring.range` is a viable index into RingArray. Below is an example of indexing a value out of scope.
+
+```juila
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+big_array = rand(Int, 100);
+for i in 1:2:12
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+display(big_array[3])
+display(ring[3])
+```
+
+The output is,
+
+```julia
+8-element UnitRange{Int64}:
+ 5,6,7,8,9,10,11,12
+647156453227300720
+ERROR: RingArrayBoundsError: Cannot index (3,), outside of range (5:12,)
+ in checkbounds at /Users/samuelmassinon/.julia/v0.5/RingArrays/src/RingArrays.jl:83
+ in getindex at /Users/samuelmassinon/.julia/v0.5/RingArrays/src/RingArrays.jl:98
+ in eval at ./boot.jl:265
+```
+
+A custom error message will appear saying where you went out of bounds.
+
 ### Reference Counting
 
-Since views are affected by the sliding window, the RingArray keeps track of the number of views currently exists.
+Views are a window into the RingArray and are not a copy of the original data. So if we were loading blocking into the RingArray and overwrote a view we had, that view would no longer point at what we want.
+
+To prevent this from happening, we implemented reference counting. This always us to make sure a block is no longer being used before we overwrite it.
 
 ### Expansions
 
