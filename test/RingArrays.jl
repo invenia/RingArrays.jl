@@ -9,6 +9,7 @@ facts("About creating RingArray") do
     context("passing a size") do
         s = rand(1:10)
         b_s = (10,)
+        d_l = 100
         test = RingArray{Int, 1}(max_blocks=s)
 
         @fact isdefined(test.blocks, 1:s...) --> false
@@ -19,10 +20,12 @@ facts("About creating RingArray") do
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
         @fact size(test) --> tuple(b_s[1]*s,)
+        @fact test.data_length --> d_l
     end
     context("passing a block size") do
         s = 10
         b_s = (10,)
+        d_l = 100
         test = RingArray{Int, 1}(block_size=b_s)
 
         @fact isdefined(test.blocks, 1:s...) --> false
@@ -33,10 +36,12 @@ facts("About creating RingArray") do
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
         @fact size(test) --> tuple(b_s[1]*s,)
+        @fact test.data_length --> d_l
     end
     context("passing nothing") do
         s = 10
         b_s = (10,)
+        d_l = 100
         test = RingArray{Int, 1}()
 
         @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
@@ -46,10 +51,12 @@ facts("About creating RingArray") do
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
         @fact size(test) --> tuple(b_s[1]*s,)
+        @fact test.data_length --> d_l
     end
     context("passing 0 for size") do
         s = 0
         b_s = (10,)
+        d_l = 100
         test = RingArray{Int, 1}(max_blocks=s)
 
         @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
@@ -59,6 +66,7 @@ facts("About creating RingArray") do
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
         @fact size(test) --> tuple(b_s[1]*s,)
+        @fact test.data_length --> d_l
     end
     context("passing a negative for size") do
         s = -1
@@ -67,7 +75,8 @@ facts("About creating RingArray") do
     context("having a multi dimensional array") do
         s = 10
         b_s = (10,10)
-        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s)
+        d_l = 100
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s, data_length=d_l)
 
         @pending test.blocks --> Array{AbstractArray{Int64,2},1}()
         @fact test.max_blocks --> s
@@ -76,11 +85,28 @@ facts("About creating RingArray") do
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
         @fact size(test) --> tuple(b_s[1]*s, b_s[2:end]...)
+        @fact test.data_length --> d_l
     end
-    context("creating a RingArray of dimension of the RingArray different form the ") do
+    context("having a multi dimensional array and passing data size") do
+        s = 10
+        b_s = (10,10)
+        d_l = 100
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+        @pending test.blocks --> Array{AbstractArray{Int64,2},1}()
+        @fact test.max_blocks --> s
+        @fact test.next_write --> 1
+        @fact test.num_users --> zeros(Int, s)
+        @fact test.block_size --> b_s
+        @fact test.range --> 1:0
+        @fact size(test) --> tuple(b_s[1]*s, b_s[2:end]...)
+        @fact test.data_length --> d_l
+    end
+    context("creating a RingArray of dimension of the RingArray different form the block size") do
         s = 10
         b_s = (10,10,10)
         dim = 2
+        d_l = 100
         @fact_throws DimensionMismatch RingArray{Int, dim}(max_blocks=s, block_size=b_s)
 
         test_error = 1
