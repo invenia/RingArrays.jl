@@ -923,6 +923,83 @@ facts("Using checkbounds") do
 
         @fact occured.data --> "RingArrayBoundsError: Cannot index $((1:overflow + 1,)), outside of range $(test.range)".data
     end
+    context("checking indexing of N d RingArray") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2:end]...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:s
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact checkbounds(test, index...) --> true
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
+    end
+    context("checking out of bounds indexing of N d RingArray") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        overflow = s * b_s[1]
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1] + overflow, index_in_block[2:end]...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:s
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact_throws RingArrayBoundsError checkbounds(test, index...)
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
+
+        test_error = 1
+        try
+            checkbounds(test, index...)
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index...,)), outside of range $(test.range)".data
+    end
 end
 
 facts("Using display") do
