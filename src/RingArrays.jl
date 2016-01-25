@@ -47,8 +47,6 @@ function showerror(io::IO, err::RingArrayBoundsError)
     print(io, "RingArrayBoundsError: Cannot index $(err.i), outside of range $range")
 end
 
-eachindex(ring::RingArray) = ring.range
-
 function display(ring::RingArray)
     display(ring.blocks)
 end
