@@ -899,8 +899,24 @@ facts("Using views") do
         expected = cat(1, expected...)
 
         @fact_throws OverwriteError load_block(test, rand(Int, test.block_size))
+
+        test_error = 1
+        try
+            load_block(test, rand(Int, test.block_size))
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "Cannot overwrite block $(1) since it has $(1) views".data
+        @fact test.num_users[1] --> 1
         @fact view --> test[1:1]
         @fact test[test.range] --> expected[test.range]
+        @fact_throws OverwriteError load_block(test, rand(Int, test.block_size))
+        @pending test.num_users[1] --> 1 # FactCheck saves results, so there are some views stored in FactCheck
+
     end
     context("having the RingArray overflow to the first block when second block is in use") do
         s = rand(3:10)
@@ -1032,8 +1048,24 @@ facts("Using views") do
         expected = cat(1, expected...)
 
         @fact_throws OverwriteError load_block(test, rand(Int, test.block_size))
+
+        test_error = 1
+        try
+            load_block(test, rand(Int, test.block_size))
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "Cannot overwrite block $(1) since it has $(1) views".data
+        @fact test.num_users[1] --> 1
         @fact view --> test[1:1]
         @fact test[test.range] --> expected[test.range]
+        @fact_throws OverwriteError load_block(test, rand(Int, test.block_size))
+        @pending test.num_users[1] --> 1 # FactCheck saves results, so there are some views stored in FactCheck
+
     end
     context("having the RingArray overflow to the first block when second block is in use") do
         s = rand(3:10)
@@ -1130,5 +1162,26 @@ facts("Loading blocks in RingArray") do
         wrong_size = (test.block_size[1], test.block_size[1])
 
         @fact_throws MethodError load_block(test, rand(Int, wrong_size))
+    end
+end
+
+############################################################################################
+# ERROR
+############################################################################################
+
+facts("Testing custom errors") do
+    context("testing output of OverwriteError") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
+
+        err = OverwriteError(test)
+
+        occured = IOBuffer()
+        showerror(occured, err)
+        expected = "Cannot overwrite block $(1) since it has $(0) views"
+
+        @fact occured.data --> expected.data
     end
 end

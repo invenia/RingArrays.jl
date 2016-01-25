@@ -2,8 +2,8 @@ module RingArrays
 
 using VirtualArrays
 
-import Base: size, getindex, checkbounds, display, RefValue
-export RingArray, size, checkbounds, display, OverwriteError, getindex, load_block
+import Base: size, getindex, checkbounds, display, RefValue, showerror
+export RingArray, size, checkbounds, display, OverwriteError, getindex, load_block, showerror
 
 type RingArray{T, N} <: AbstractArray{T, N}
     next_write::Int
@@ -27,6 +27,12 @@ end
 
 type OverwriteError <: Exception
     ring::RingArray
+end
+
+function showerror(io::IO, err::OverwriteError)
+    next_write = err.ring.next_write
+    num_users = err.ring.num_users[err.ring.next_write]
+    print(io, "Cannot overwrite block $(next_write) since it has $(num_users) views")
 end
 
 function display(ring::RingArray)
@@ -128,10 +134,6 @@ function add_users(ring::RingArray, i::UnitRange...)
 
     first_block = divide(i[1].start, ring.block_length)
     last_block = divide(i[1].stop, ring.block_length)
-
-    # make sure the values are loaded
-    # TODO optimize this, or have it work without needing to load values
-    #ring[i[1].stop]
 
     for i in first_block:last_block
         block_index = fix_zero_index(i, ring.max_blocks)
