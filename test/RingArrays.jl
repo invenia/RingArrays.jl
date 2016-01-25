@@ -1098,6 +1098,66 @@ facts("Using checkbounds") do
         @fact checkbounds(test, ring_range...) --> true
         @fact test[test.range, ranges...] --> expected[test.range, ranges...]
     end
+    context("checking range indexing of N d RingArray") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        overflow = s * b_s[1]
+        index_in_block[rand(2:num_dimensions)] += overflow
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2:end]...)
+
+        num_overflows = rand(1:10)
+        ranges = []
+        for i in 1:num_dimensions
+            start = rand(1:b_s[i])
+            last = rand(start:b_s[i])
+            push!(ranges, start:last)
+        end
+        ring_range = collect((ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows, ranges[2:end]...))
+
+        bad_index = rand(2:num_dimensions)
+        ring_range[bad_index] += b_s[bad_index] * rand(-1:2:1)
+        ring_range = tuple(ring_range...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact_throws RingArrayBoundsError checkbounds(test, ring_range...)
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
+
+        test_error = 1
+        try
+            checkbounds(test, ring_range...)
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((ring_range...,)), outside of range $range".data
+    end
 end
 
 facts("Using display") do
