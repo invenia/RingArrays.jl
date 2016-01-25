@@ -272,7 +272,57 @@ A custom error message will appear saying where you went out of bounds.
 
 Views are a window into the RingArray and are not a copy of the original data. So if we were loading blocking into the RingArray and overwrote a view we had, that view would no longer point at what we want.
 
-To prevent this from happening, we implemented reference counting. This always us to make sure a block is no longer being used before we overwrite it.
+To prevent this from happening, we implemented reference counting. This always us to make sure a block is no longer being used before we overwrite it. The example below shows what happens when we try to overwrite a block in use.
+
+```
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+big_array = rand(Int, 100);
+for i in 1:2:10
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+view = ring[5:7];
+display(view)
+display(ring.blocks)
+for i in 11:2:20
+    load_block(ring, big_array[i:i+1]);
+end
+display(view)
+display(ring.blocks)
+```
+
+The output is,
+
+```julia
+8-element UnitRange{Int64}:
+ 3,4,5,6,7,8,9,10
+3-element VirtualArrays.VirtualArray{Int64,1}:
+ 1544057856107072830
+ 8929073097273941100
+ 4699659618912958729
+4-element Array{AbstractArray{Int64,1},1}:
+ [-5031990884861863335,-3164449225297417624]
+ [5365344782569642274,5184980088932498570]  
+ [1544057856107072830,8929073097273941100]  
+ [4699659618912958729,-3175526180812364101] 
+ERROR: OverwriteError: Cannot overwrite block 3 since it has 1 views
+ in load_block at /Users/samuelmassinon/.julia/v0.5/RingArrays/src/RingArrays.jl:119
+ [inlined code] from ./range.jl:83
+ in anonymous at ./range.jl:97
+ in eval at ./boot.jl:265
+
+ 3-element VirtualArrays.VirtualArray{Int64,1}:
+ 1544057856107072830
+ 8929073097273941100
+ 4699659618912958729
+4-element Array{AbstractArray{Int64,1},1}:
+ [-5031990884861863335,-3164449225297417624]
+ [6934442229844147992,1829732299464057830]  
+ [1544057856107072830,8929073097273941100]  
+ [4699659618912958729,-3175526180812364101]
+```
+
+The output shows that the 2nd block was overwritten, but when we tried to overwrite the 3rd block, RingArray checked and saw that it still had a view and threw an error.
 
 ### Expansions
 
