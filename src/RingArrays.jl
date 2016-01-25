@@ -2,8 +2,10 @@ module RingArrays
 
 using VirtualArrays
 
-import Base: size, getindex, checkbounds, display, RefValue, showerror
-export RingArray, size, checkbounds, display, OverwriteError, getindex, load_block, showerror
+import Base: size, getindex, checkbounds, display, RefValue, showerror, eachindex
+export RingArray, size, checkbounds, display
+export OverwriteError, getindex, load_block
+export showerror, eachindex, RingArrayBoundsError
 
 type RingArray{T, N} <: AbstractArray{T, N}
     next_write::Int
@@ -29,11 +31,22 @@ type OverwriteError <: Exception
     ring::RingArray
 end
 
+type RingArrayBoundsError <: Exception
+    ring::RingArray
+    i
+end
+
 function showerror(io::IO, err::OverwriteError)
     next_write = err.ring.next_write
     num_users = err.ring.num_users[err.ring.next_write]
-    print(io, "Cannot overwrite block $(next_write) since it has $(num_users) views")
+    print(io, "OverwriteError: Cannot overwrite block $(next_write) since it has $(num_users) views")
 end
+
+function showerror(io::IO, err::RingArrayBoundsError)
+    print(io, "RingArrayBoundsError: Cannot index $(err.i), outside of range $(err.ring.range)")
+end
+
+eachindex(ring::RingArray) = ring.range
 
 function display(ring::RingArray)
     display(ring.blocks)
@@ -52,7 +65,7 @@ checkbounds(ring::RingArray) = true # because of warnings
 function checkbounds(ring::RingArray, indexes::UnitRange{Int64}...)
 
     if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
-        throw(BoundsError(ring, indexes))
+        throw(RingArrayBoundsError(ring, indexes))
     end
     return true
 end
@@ -60,7 +73,7 @@ end
 function checkbounds(ring::RingArray, indexes::Int...)
 
     if ring.range.start > indexes[1] || ring.range.stop < indexes[1]
-        throw(BoundsError(ring, indexes))
+        throw(RingArrayBoundsError(ring, indexes))
     end
     return true
 end

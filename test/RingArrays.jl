@@ -118,7 +118,19 @@ facts("Getting values from RingArray") do
         b_s = (rand(1:10),)
         test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
-        @fact_throws BoundsError test[1]
+        @fact_throws RingArrayBoundsError test[1]
+
+        test_error = 1
+        try
+            test[1]
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1,)), outside of range $(test.range)".data
     end
     context("getting a value in the first block") do
         s = rand(1:10)
@@ -188,8 +200,20 @@ facts("Getting values from RingArray") do
         end
         expected = cat(1, expected...)
 
-        @fact_throws BoundsError test[index]
+        @fact_throws RingArrayBoundsError test[index]
         @fact test[test.range] --> expected[test.range]
+
+        test_error = 1
+        try
+            test[index]
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index,)), outside of range $(test.range)".data
     end
     context("getting a value in any block first") do
         s = rand(3:10)
@@ -326,8 +350,20 @@ facts("Getting values over the length (overflow) of the RingArray") do
         end
         expected = cat(1, expected...)
 
-        @fact_throws BoundsError test[index]
+        @fact_throws RingArrayBoundsError test[index]
         @fact test[test.range] --> expected[test.range]
+
+        test_error = 1
+        try
+            test[index]
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index,)), outside of range $(test.range)".data
     end
     context("getting any value after overflowing") do
         s = rand(3:10)
@@ -469,7 +505,19 @@ facts("Getting data views") do
 
         test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
-        @fact_throws BoundsError test[range]
+        @fact_throws RingArrayBoundsError test[range]
+
+        test_error = 1
+        try
+            test[range]
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((range,)), outside of range $(test.range)".data
     end
     context("looking at a the whole portion of the first block") do
         s = rand(3:10)
@@ -722,8 +770,20 @@ facts("Using checkbounds") do
         end
         expected = cat(1, expected...)
 
-        @fact_throws BoundsError checkbounds(test, 1)
+        @fact_throws RingArrayBoundsError checkbounds(test, 1)
         @fact test[test.range] --> expected[test.range]
+
+        test_error = 1
+        try
+            checkbounds(test, 1)
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1,)), outside of range $(test.range)".data
     end
     context("checking unit range bounds before overflow without overflowing") do
         s = rand(3:10)
@@ -813,8 +873,20 @@ facts("Using checkbounds") do
         end
         expected = cat(1, expected...)
 
-        @fact_throws BoundsError checkbounds(test, 1:overflow)
+        @fact_throws RingArrayBoundsError checkbounds(test, 1:overflow)
         @fact test[test.range] --> expected[test.range]
+
+        test_error = 1
+        try
+            checkbounds(test, 1:overflow)
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1:overflow,)), outside of range $(test.range)".data
     end
     context("checking unit range bounds that exceed the length of the ring") do
         s = rand(3:10)
@@ -830,14 +902,26 @@ facts("Using checkbounds") do
             load_block(test, expected[end])
         end
 
-        @fact_throws BoundsError checkbounds(test, 1:overflow + 1)
+        @fact_throws RingArrayBoundsError checkbounds(test, 1:overflow + 1)
 
         push!(expected, rand(Int, test.block_size))
         load_block(test, expected[end])
         expected = cat(1, expected...)
 
-        @fact_throws BoundsError checkbounds(test, 1:overflow + 1)
+        @fact_throws RingArrayBoundsError checkbounds(test, 1:overflow + 1)
         @fact test[test.range] --> expected[test.range]
+
+        test_error = 1
+        try
+            checkbounds(test, 1:overflow + 1)
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1:overflow + 1,)), outside of range $(test.range)".data
     end
 end
 
@@ -910,7 +994,7 @@ facts("Using views") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "Cannot overwrite block $(1) since it has $(1) views".data
+        @fact occured.data --> "OverwriteError: Cannot overwrite block $(1) since it has $(1) views".data
         @fact test.num_users[1] --> 1
         @fact view --> test[1:1]
         @fact test[test.range] --> expected[test.range]
@@ -1059,7 +1143,7 @@ facts("Using views") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "Cannot overwrite block $(1) since it has $(1) views".data
+        @fact occured.data --> "OverwriteError: Cannot overwrite block $(1) since it has $(1) views".data
         @fact test.num_users[1] --> 1
         @fact view --> test[1:1]
         @fact test[test.range] --> expected[test.range]
@@ -1180,7 +1264,22 @@ facts("Testing custom errors") do
 
         occured = IOBuffer()
         showerror(occured, err)
-        expected = "Cannot overwrite block $(1) since it has $(0) views"
+        expected = "OverwriteError: Cannot overwrite block $(1) since it has $(0) views"
+
+        @fact occured.data --> expected.data
+    end
+    context("testing output of RingArrayBoundsError") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        i = rand(1:1000)
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
+
+        err = RingArrayBoundsError(test, i)
+
+        occured = IOBuffer()
+        showerror(occured, err)
+        expected = "RingArrayBoundsError: Cannot index $(i), outside of range $(test.range)"
 
         @fact occured.data --> expected.data
     end
