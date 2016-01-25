@@ -43,7 +43,8 @@ function showerror(io::IO, err::OverwriteError)
 end
 
 function showerror(io::IO, err::RingArrayBoundsError)
-    print(io, "RingArrayBoundsError: Cannot index $(err.i), outside of range $(err.ring.range)")
+    range = tuple(err.ring.range, err.ring.block_size[2:end]...)
+    print(io, "RingArrayBoundsError: Cannot index $(err.i), outside of range $range")
 end
 
 eachindex(ring::RingArray) = ring.range
@@ -62,18 +63,30 @@ end
 
 checkbounds(ring::RingArray) = true # because of warnings
 
-function checkbounds(ring::RingArray, indexes::UnitRange{Int64}...)
+function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int64}...)
 
     if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
         throw(RingArrayBoundsError(ring, indexes))
+    else
+        for i in 2:N
+            if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
+                throw(RingArrayBoundsError(ring, indexes))
+            end
+        end
     end
     return true
 end
 
-function checkbounds(ring::RingArray, indexes::Int...)
+function checkbounds{T, N}(ring::RingArray{T, N}, indexes::Int...)
 
     if ring.range.start > indexes[1] || ring.range.stop < indexes[1]
         throw(RingArrayBoundsError(ring, indexes))
+    else
+        for i in 2:N
+            if 1 > indexes[i] || ring.block_size[i] < indexes[i]
+                throw(RingArrayBoundsError(ring, indexes))
+            end
+        end
     end
     return true
 end

@@ -130,7 +130,8 @@ facts("Getting values from RingArray") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1,)), outside of range $range".data
     end
     context("getting a value in the first block") do
         s = rand(1:10)
@@ -213,7 +214,8 @@ facts("Getting values from RingArray") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index,)), outside of range $range".data
     end
     context("getting a value in any block first") do
         s = rand(3:10)
@@ -363,7 +365,8 @@ facts("Getting values over the length (overflow) of the RingArray") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index,)), outside of range $range".data
     end
     context("getting any value after overflowing") do
         s = rand(3:10)
@@ -501,15 +504,15 @@ facts("Getting data views") do
         block_picked = 1
         start = rand(1:b_l)
         last = rand(start:b_l)
-        range = start:last
+        ring_range = start:last
 
         test = RingArray{Int, 1}(max_blocks=s, block_size=b_s)
 
-        @fact_throws RingArrayBoundsError test[range]
+        @fact_throws RingArrayBoundsError test[ring_range]
 
         test_error = 1
         try
-            test[range]
+            test[ring_range]
         catch e
             test_error = e
         end
@@ -517,7 +520,8 @@ facts("Getting data views") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((range,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((ring_range,)), outside of range $range".data
     end
     context("looking at a the whole portion of the first block") do
         s = rand(3:10)
@@ -783,7 +787,8 @@ facts("Using checkbounds") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1,)), outside of range $range".data
     end
     context("checking unit range bounds before overflow without overflowing") do
         s = rand(3:10)
@@ -886,7 +891,8 @@ facts("Using checkbounds") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1:overflow,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1:overflow,)), outside of range $range".data
     end
     context("checking unit range bounds that exceed the length of the ring") do
         s = rand(3:10)
@@ -921,7 +927,8 @@ facts("Using checkbounds") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1:overflow + 1,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((1:overflow + 1,)), outside of range $range".data
     end
     context("checking indexing of N d RingArray") do
         s = rand(3:10)
@@ -998,7 +1005,54 @@ facts("Using checkbounds") do
         occured = IOBuffer()
         showerror(occured, test_error)
 
-        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index...,)), outside of range $(test.range)".data
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index...,)), outside of range $range".data
+    end
+    context("checking out of bounds indexing not on the first dimension of N d RingArray") do
+        s = rand(3:10)
+        num_dimensions = rand(3:6)
+        b_s = []
+        for i in 1:num_dimensions
+            push!(b_s, rand(1:10))
+        end
+        b_s = tuple(b_s...)
+        block_picked = rand(3:s)
+        index_in_block = []
+        for i in 1:num_dimensions
+            push!(index_in_block, rand(1:b_s[i]))
+        end
+        overflow = s * b_s[1]
+        index = (index_in_block[1] + (block_picked - 1) * b_s[1] + overflow, index_in_block[2:end]...)
+
+        test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s)
+
+        expected = []
+        for i in 1:s
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        ranges = []
+        for i in 2:num_dimensions
+            push!(ranges, 1:b_s[i])
+        end
+
+        @fact_throws RingArrayBoundsError checkbounds(test, index...)
+        @fact test[test.range, ranges...] --> expected[test.range, ranges...]
+
+        test_error = 1
+        try
+            checkbounds(test, index...)
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+
+        range = tuple(test.range, test.block_size[2:end]...)
+        @fact occured.data --> "RingArrayBoundsError: Cannot index $((index...,)), outside of range $range".data
     end
 end
 
@@ -1356,7 +1410,8 @@ facts("Testing custom errors") do
 
         occured = IOBuffer()
         showerror(occured, err)
-        expected = "RingArrayBoundsError: Cannot index $(i), outside of range $(test.range)"
+        range = tuple(test.range, test.block_size[2:end]...)
+        expected = "RingArrayBoundsError: Cannot index $(i), outside of range $(range)"
 
         @fact occured.data --> expected.data
     end
