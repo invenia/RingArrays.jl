@@ -243,7 +243,7 @@ The output is,
 
 Anything between `ring.range` is a viable index into RingArray. Below is an example of indexing a value out of scope.
 
-```juila
+```julia
 ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
 big_array = rand(Int, 100);
 for i in 1:2:12
@@ -276,7 +276,7 @@ Views are a window into the RingArray and are not a copy of the original data. S
 
 To prevent this from happening, we implemented reference counting. This always us to make sure a block is no longer being used before we overwrite it. The example below shows what happens when we try to overwrite a block in use.
 
-```
+```julia
 ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
 big_array = rand(Int, 100);
 for i in 1:2:10
@@ -423,7 +423,7 @@ whos()
 
 The output is, (only showing what's important)
 
-```
+```julia
 .
 .
 .
