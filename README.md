@@ -31,7 +31,7 @@ ring = RingArray{Int, 3}(max_blocks=10, block_size=(10,10,10))
 
 `block_size` is the dimension size of the blocks. Each block must have the same size.
 
-### Storing Blocks
+### Loading Blocks
 
 RingArrays need there blocks to be loaded manually.
 
@@ -197,7 +197,7 @@ The output is,
 
 All the values are the same. One thing to note is that the values returned are stored into a VirtualArray. It should act just like an array you would get from the 'big array' except will save on memory usage.
 
-### Where you can index
+#### Where you can index
 
 Since the RingArray is suppose to be treated like a sliding window over a larger array, our indexes must be within the window the RingArray currently has. In the example below, we output the ranges the RingArray has:
 
@@ -272,6 +272,8 @@ A custom error message will appear saying where you went out of bounds.
 
 Views are a window into the RingArray and are not a copy of the original data. So if we were loading blocking into the RingArray and overwrote a view we had, that view would no longer point at what we want.
 
+#### Preventing overwrite
+
 To prevent this from happening, we implemented reference counting. This always us to make sure a block is no longer being used before we overwrite it. The example below shows what happens when we try to overwrite a block in use.
 
 ```
@@ -323,6 +325,80 @@ ERROR: OverwriteError: Cannot overwrite block 3 since it has 1 views
 ```
 
 The output shows that the 2nd block was overwritten, but when we tried to overwrite the 3rd block, RingArray checked and saw that it still had a view and threw an error.
+
+#### Reference counting is manage by RingArray
+
+You do not need to keep track of the reference counting yourself, RingArray will manage them. When getting a view, it will increment the count, and when that view goes out of scope, it will decrement it garbage collection or when you need to overwrite a block.
+
+Here is an example of being able to overwrite a block after we get rid of the view.
+
+```julia
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+big_array = rand(Int, 100);
+for i in 1:2:10
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+view = ring[5:7];
+display(view)
+display(ring.blocks)
+for i in 11:2:20
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+display(view)
+display(ring.blocks)
+view = 1; # the view no longer exists
+for i in 13:2:20
+    load_block(ring, big_array[i:i+1]);
+end
+display(ring.range)
+display(view)
+display(ring.blocks)
+```
+
+The output is,
+
+```julia
+8-element UnitRange{Int64}:
+ 3,4,5,6,7,8,9,10
+3-element VirtualArrays.VirtualArray{Int64,1}:
+ 5911735777477926249
+ 3910434893574962823
+ -906348638428454513
+4-element Array{AbstractArray{Int64,1},1}:
+ [-625772552758151126,743620623558767253]  
+ [-9012475836041925679,8620617579832117383]
+ [5911735777477926249,3910434893574962823] 
+ [-906348638428454513,2603597537533504413] 
+ERROR: OverwriteError: Cannot overwrite block 3 since it has 1 views
+ in load_block at /Users/samuelmassinon/.julia/v0.5/RingArrays/src/RingArrays.jl:119
+ [inlined code] from ./range.jl:83
+ in anonymous at ./range.jl:97
+ in eval at ./boot.jl:265
+
+ 8-element UnitRange{Int64}:
+ 5,6,7,8,9,10,11,12
+3-element VirtualArrays.VirtualArray{Int64,1}:
+ 5911735777477926249
+ 3910434893574962823
+ -906348638428454513
+4-element Array{AbstractArray{Int64,1},1}:
+ [-625772552758151126,743620623558767253] 
+ [2405481536158146032,4216339971683807994]
+ [5911735777477926249,3910434893574962823]
+ [-906348638428454513,2603597537533504413]
+8-element UnitRange{Int64}:
+ 13,14,15,16,17,18,19,20
+1
+4-element Array{AbstractArray{Int64,1},1}:
+ [-4896354921357038745,-63704711846758516] 
+ [8336018676551718190,9077386792586977037] 
+ [-970205719865134290,-8463847478386580504]
+ [1002526877401869676,1037177028879382219] 
+```
+
+The output shows that after we set `view = 1`, the block we want to overwrite no longer has any views into it and can no overwrite it.
 
 ### Expansions
 
