@@ -4,8 +4,8 @@ using VirtualArrays
 
 import Base: size, getindex, checkbounds, display, RefValue, showerror, eachindex
 export RingArray, size, checkbounds, display
-export OverwriteError, getindex, load_block
-export showerror, eachindex, RingArrayBoundsError
+export getindex, load_block, eachindex, RingArrayBoundsError
+export showerror, OverwriteError, RingArrayFullError, RingArrayBoundsError
 
 type RingArray{T, N} <: AbstractArray{T, N}
     next_write::Int
@@ -37,6 +37,10 @@ type RingArrayBoundsError <: Exception
     i
 end
 
+type RingArrayFullError <: Exception
+    ring::RingArray
+end
+
 function showerror(io::IO, err::OverwriteError)
     next_write = err.ring.next_write
     num_users = err.ring.num_users[err.ring.next_write]
@@ -46,6 +50,10 @@ end
 function showerror(io::IO, err::RingArrayBoundsError)
     range = tuple(err.ring.range, err.ring.block_size[2:end]...)
     print(io, "RingArrayBoundsError: Cannot index $(err.i), outside of range $range")
+end
+
+function showerror(io::IO, err::RingArrayFullError)
+    print(io, "RingArrayFullError: Cannot load another block, max data length is $(err.ring.data_length)")
 end
 
 function display(ring::RingArray)
@@ -111,13 +119,7 @@ function getindex(ring::RingArray, i::UnitRange...)
 end
 
 function load_block{T, N}(ring::RingArray{T ,N}, block::AbstractArray{T, N})
-    check_dimensions(ring, block)
-    if ring.num_users[ring.next_write] > 0
-        gc()
-        if ring.num_users[ring.next_write] > 0
-            throw(OverwriteError(ring))
-        end
-    end
+    can_load_block!(ring, block)
 
     ring.blocks[ring.next_write] = block
     ring.next_write = fix_zero_index(ring.next_write + 1, ring.max_blocks)
@@ -131,6 +133,21 @@ function load_block{T, N}(ring::RingArray{T ,N}, block::AbstractArray{T, N})
 end
 
 # Util functions
+
+function can_load_block!(ring::RingArray, block::AbstractArray)
+    if ring.num_users[ring.next_write] > 0
+        gc()
+        if ring.num_users[ring.next_write] > 0
+            throw(OverwriteError(ring))
+        end
+    end
+
+    if ring.range.stop >= ring.data_length
+        throw(RingArrayFullError(ring))
+    end
+
+    check_dimensions(ring, block)
+end
 
 function check_index{T, N}(ring::RingArray{T, N}, i...)
     if length(i) != N
