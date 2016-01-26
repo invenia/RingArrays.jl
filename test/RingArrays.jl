@@ -298,11 +298,12 @@ facts("Getting values from RingArray") do
     end
     context("getting value from 2 d array like a 1 d array") do
         s = rand(3:10)
-        b_s = (rand(1:10),rand(1:10))
+        b_s = (rand(2:10),rand(2:10))
         d_l = s * b_s[1]
         block_picked = rand(3:s)
         index_in_block = (rand(1:b_s[1]))
         index = (index_in_block[1] + (block_picked - 1) * b_s[1])
+        index_overflow = d_l + 1
 
         test = RingArray{Int, 2}(max_blocks=s, block_size=b_s, data_length=d_l)
 
@@ -313,7 +314,9 @@ facts("Getting values from RingArray") do
         end
         expected = cat(1, expected...)
 
-        @fact_throws ErrorException test[index...]
+        @fact test[index...] --> expected[index...]
+        @fact test[index_overflow] --> expected[index_overflow]
+        @fact test[index_overflow] --> test[1,2]
     end
     context("getting value from N d array") do
         s = rand(3:10)
@@ -686,7 +689,7 @@ facts("Getting data views") do
         overflow = s * b_s[1]
         num_overflows = rand(1:10)
         ring_range = (range[1] + (block_picked - 1) * b_l, 1:b_w)
-        d_l = ring_range[1].stop + (b_l - ring_range[1] .stop % b_l)
+        d_l = ring_range[1].stop + (b_l - ring_range[1].stop % b_l)
 
         test = RingArray{Int, 2}(max_blocks=s, block_size=b_s, data_length=d_l)
 
@@ -1537,6 +1540,33 @@ facts("Loading blocks in RingArray") do
 
         @fact_throws MethodError load_block(test, rand(Int, wrong_size))
     end
+    context("loading too many blocks") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        num_blocks = rand(s:100)
+        d_l = b_s[1] * num_blocks
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+        for i in 1:num_blocks
+            @fact load_block(test, rand(Int, test.block_size)) --> nothing
+        end
+
+        @fact_throws RingArrayFullError load_block(test, rand(Int, test.block_size))
+
+        test_error = 1
+        try
+            load_block(test, rand(Int, test.block_size))
+        catch e
+            test_error = e
+        end
+
+        occured = IOBuffer()
+        showerror(occured, test_error)
+        expected = "RingArrayFullError: Cannot load another block, max data length is $(d_l)"
+
+        @fact occured.data --> expected.data
+    end
 end
 
 ############################################################################################
@@ -1570,7 +1600,6 @@ facts("Testing custom errors") do
 
         occured = IOBuffer()
         showerror(occured, err)
-        range = tuple(test.range, test.block_size[2:end]...)
         expected = "RingArrayFullError: Cannot load another block, max data length is $(test.data_length)"
 
         @fact occured.data --> expected.data

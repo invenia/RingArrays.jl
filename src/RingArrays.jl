@@ -101,7 +101,7 @@ end
 getindex(ring::RingArray) = nothing # Warnings told me to make this
 
 function getindex(ring::RingArray, i::Int...)
-    check_index(ring, i...)
+    i = expand_index(ring, i...)
     checkbounds(ring, i...)
     result = 0
 
@@ -112,7 +112,7 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
-    check_index(ring, i...)
+    #check_index(ring, i...)
     checkbounds(ring, i...)
     add_users(ring, i...)
     return get_view(ring, i...)
@@ -147,6 +147,25 @@ function can_load_block!(ring::RingArray, block::AbstractArray)
     end
 
     check_dimensions(ring, block)
+end
+
+function expand_index{T, N}(ring::RingArray{T, N}, i::Int...)
+    result = collect(i)
+    len_needed = N
+    len_have = length(i)
+
+    for at in len_have:len_needed - 1
+        last_value = result[end]
+        if at == 1
+            result[end] = fix_zero_index(last_value, ring.data_length)
+            push!(result, divide(last_value, ring.data_length))
+        else
+            result[end] = fix_zero_index(last_value, ring.block_size[at])
+            push!(result, divide(last_value, ring.block_size[at]))
+        end
+    end
+
+    return result
 end
 
 function check_index{T, N}(ring::RingArray{T, N}, i...)
