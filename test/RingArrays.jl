@@ -1559,6 +1559,22 @@ facts("Testing custom errors") do
 
         @fact occured.data --> expected.data
     end
+    context("testing output of RingArrayFullError") do
+        s = rand(3:10)
+        b_s = (rand(2:10),)
+        d_l = b_s[1] * s
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+        err = RingArrayFullError(test)
+
+        occured = IOBuffer()
+        showerror(occured, err)
+        range = tuple(test.range, test.block_size[2:end]...)
+        expected = "RingArrayFullError: Cannot load another block, max data length is $(test.data_length)"
+
+        @fact occured.data --> expected.data
+    end
     context("testing output of RingArrayBoundsError") do
         s = rand(3:10)
         b_s = (rand(2:10),)
