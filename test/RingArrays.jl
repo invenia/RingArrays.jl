@@ -317,6 +317,33 @@ facts("Getting values from RingArray") do
         @fact test[index...] --> expected[index...]
         @fact test[index_overflow] --> expected[index_overflow]
         @fact test[index_overflow] --> test[1,2]
+        @fact test[index_overflow] --> expected[1,2]
+    end
+    context("getting value from 2 d array like a 1 d array after overflow") do
+        s = rand(3:10)
+        b_s = (rand(2:10),rand(2:10))
+        block_picked = rand(3:s)
+        index_in_block = (rand(1:b_s[1]))
+        overflow = s * b_s[1]
+        num_overflows = rand(1:10)
+        index = index_in_block + (block_picked - 1) * b_s[1] + overflow * num_overflows
+        d_l = index + (b_s[1] - index % b_s[1])
+        index_overflow = index + d_l
+
+        test = RingArray{Int, 2}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+        expected = []
+        for i in 1:index ÷ b_s[1] + 1
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        @fact test[index...] --> expected[index...]
+        @fact test[index_overflow] --> expected[index_overflow]
+        @fact test[index_overflow] --> test[index,2]
+        @fact test[index_overflow] --> expected[index,2]
+        @fact_throws RingArrayBoundsError test[d_l + 1]
     end
     context("getting value from N d array") do
         s = rand(3:10)
