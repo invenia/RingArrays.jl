@@ -2,9 +2,9 @@ module RingArrays
 
 using VirtualArrays
 
-import Base: size, getindex, checkbounds, display, RefValue, showerror, eachindex
+import Base: size, getindex, checkbounds, display, RefValue, showerror
 export RingArray, size, checkbounds, display
-export getindex, load_block, eachindex, RingArrayBoundsError
+export getindex, load_block, RingArrayBoundsError
 export showerror, OverwriteError, RingArrayFullError, RingArrayBoundsError
 
 type RingArray{T, N} <: AbstractArray{T, N}

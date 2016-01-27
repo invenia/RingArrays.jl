@@ -6,6 +6,10 @@ RingArrays is a way to access a large dataset in incremental chucks to limit the
 
 The idea of the RingArray is that is should act like a sliding window on a massive array where the window is the only part of the array you currently care about. The sliding window will move at the pace you tell it too and will contain as much data as you want.
 
+## Installation
+
+To get a copy of RingArray, you can run `Pkg.clone("git@github.com:invenia/RingArrays.jl.git")`.
+
 ## Read Only
 
 The RingArray is in a read only state. Trying to set a value will throw this error.
@@ -455,3 +459,7 @@ The output is, (only showing what's important)
 ```
 
 From the output, we see that in both cases, the RingArray keeps a constant size of `78125 KB` which is much smaller than the 'big array' at `7812500 KB`.
+
+## Benchmark
+
+The results of the benchmarks can be viewed [here](benchmark/BENCHMARK.md).
