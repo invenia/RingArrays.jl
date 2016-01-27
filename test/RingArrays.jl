@@ -355,6 +355,10 @@ facts("Getting values from RingArray") do
     end
 end
 
+############################################################################################
+# INDEXING AFTER OVERFLOW
+############################################################################################
+
 facts("Getting values over the length (overflow) of the RingArray") do
     context("getting the first value after overflowing") do
         s = rand(3:10)
@@ -522,6 +526,10 @@ facts("Getting values over the length (overflow) of the RingArray") do
     end
 end
 
+############################################################################################
+# DATA VIEWS
+############################################################################################
+
 facts("Getting data views") do
     context("looking at a small portion of the first block") do
         s = rand(3:10)
@@ -546,6 +554,27 @@ facts("Getting data views") do
         @fact test[range] --> test.blocks[block_picked][range]
         @fact test[range] --> test[range]
         @fact test[test.range] --> expected[test.range]
+    end
+    context("trying to change a value in a view") do
+        s = rand(3:10)
+        b_l = rand(1:10)
+        b_s = (b_l,)
+        block_picked = 1
+        start = rand(1:b_l)
+        last = rand(start:b_l)
+        range = start:last
+        d_l = range.stop + (b_l - range.stop % b_l)
+
+        test = RingArray{Int, 1}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+        expected = []
+        for i in 1:range.stop ÷ b_s[1] + 1
+            push!(expected, rand(Int, test.block_size))
+            load_block(test, expected[end])
+        end
+        expected = cat(1, expected...)
+
+        @fact_throws ErrorException test[range][1] = 3
     end
     context("looking at a small portion of the first block without loading") do
         s = rand(3:10)
@@ -1221,6 +1250,10 @@ facts("Using checkbounds") do
     end
 end
 
+############################################################################################
+# DISPLAY
+############################################################################################
+
 facts("Using display") do
     context("trying display on a typical RingArray") do
         s = rand(3:10)
@@ -1235,6 +1268,10 @@ facts("Using display") do
         @fact display(test) --> nothing
     end
 end
+
+############################################################################################
+# VIEWS
+############################################################################################
 
 facts("Using views") do
     context("having the RingArray overflow when no views in use") do
