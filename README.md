@@ -17,6 +17,19 @@ ERROR: indexing not defined for RingArrays.RingArray{Int64,1}
  in eval at ./boot.jl:265
 ```
 
+Even the views into RingArray are read only.
+
+```julia
+julia> view = ring[1:2];
+
+julia> view[1] = 1
+ERROR: indexing not defined for RingArrays.RingArray{Int64,1}
+ [inlined code] from ./abstractarray.jl:584
+ in setindex! at ./subarray.jl:587
+ in setindex! at /Users/samuelmassinon/.julia/v0.5/VirtualArrays/src/VirtualArrays.jl:72
+ in eval at ./boot.jl:265
+```
+
 ## Usage
 
 ### Creating
@@ -24,12 +37,14 @@ ERROR: indexing not defined for RingArrays.RingArray{Int64,1}
 Creating a RingArray only needs two values, both of which have default if you pass nothing.
 
 ```julia
-ring = RingArray{Int, 3}(max_blocks=10, block_size=(10,10,10))
+ring = RingArray{Int, 3}(max_blocks=10, block_size=(10,10,10), data_length=1000)
 ```
 
 `max_block` will determine the most number of blocks the ring array can hold at any time.
 
 `block_size` is the dimension size of the blocks. Each block must have the same size.
+
+`data_length` is the max length of RingArray, along the first dimensions.
 
 ### Loading Blocks
 
@@ -69,7 +84,7 @@ As you can see, the first display shows the first block loaded and the second di
 When you load more blocks than your RingArray can handle, it will begin to overwrite blocks, starting with the oldest.
 
 ```julia
-ring = RingArray{Int, 1}(max_blocks=5, block_size=(2,));
+ring = RingArray{Int, 1}(max_blocks=5, block_size=(2,), data_length=100);
 for i in 1:4
     data = rand(Int64, ring.block_size);
     load_block(ring, data);
@@ -113,7 +128,7 @@ In the last display, we can see that the first row of values have been overwritt
 A RingArray can be accessed like the array it is 'sliding' over.
 
 ```julia
-ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,), data_length=100);
 big_array = rand(Int, 100);
 for i in 1:2:6
     load_block(ring, big_array[i:i+1]);
@@ -150,7 +165,7 @@ The output shows that the value we get from the RingArray is identical to the va
 You can even use ranges to index into a RingArray, just like the 'big array'.
 
 ```julia
-ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,), data_length=100);
 big_array = rand(Int, 100);
 for i in 1:2:6
     load_block(ring, big_array[i:i+1]);
@@ -202,7 +217,7 @@ All the values are the same. One thing to note is that the values returned are s
 Since the RingArray is suppose to be treated like a sliding window over a larger array, our indexes must be within the window the RingArray currently has. In the example below, we output the ranges the RingArray has:
 
 ```julia
-ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,), data_length=100);
 big_array = rand(Int, 100);
 for i in 1:2:6
     load_block(ring, big_array[i:i+1]);
@@ -244,7 +259,7 @@ The output is,
 Anything between `ring.range` is a viable index into RingArray. Below is an example of indexing a value out of scope.
 
 ```julia
-ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,), data_length=100);
 big_array = rand(Int, 100);
 for i in 1:2:12
     load_block(ring, big_array[i:i+1]);
@@ -277,7 +292,7 @@ Views are a window into the RingArray and are not a copy of the original data. S
 To prevent this from happening, we implemented reference counting. This always us to make sure a block is no longer being used before we overwrite it. The example below shows what happens when we try to overwrite a block in use.
 
 ```julia
-ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,), data_length=100);
 big_array = rand(Int, 100);
 for i in 1:2:10
     load_block(ring, big_array[i:i+1]);
@@ -333,7 +348,7 @@ You do not need to keep track of the reference counting yourself, RingArray will
 Here is an example of being able to overwrite a block after we get rid of the view.
 
 ```julia
-ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,));
+ring = RingArray{Int, 1}(max_blocks=4, block_size=(2,), data_length=100);
 big_array = rand(Int, 100);
 for i in 1:2:10
     load_block(ring, big_array[i:i+1]);
@@ -409,7 +424,7 @@ The RingArray expects that the blocks stack on the first dimensions, so that the
 It is rather difficult to show how little memory a RingArray will take in comparison to its array counterpart. What I was able to show is how much memory a RingArray has in comparison of the array it is sliding along.
 
 ```julia
-ring = RingArray{Int, 3}(max_blocks=10, block_size=(100,100,100));
+ring = RingArray{Int, 3}(max_blocks=10, block_size=(100,100,100), data_length=100000);
 big_array = rand(Int, 100000, 100, 100);
 for i in 1:100:10000
     load_block(ring, big_array[i:i+99,1:end,1:end]);
