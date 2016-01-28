@@ -168,12 +168,6 @@ function expand_index{T, N}(ring::RingArray{T, N}, i::Int...)
     return result
 end
 
-function check_index{T, N}(ring::RingArray{T, N}, i...)
-    if length(i) != N
-        throw(ErrorException("$i does not match $N dimensions"))
-    end
-end
-
 function fix_zero_index(value::Int, s::Int)
     value = value % s
     if value == 0
