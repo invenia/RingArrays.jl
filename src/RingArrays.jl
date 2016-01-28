@@ -1,6 +1,7 @@
 module RingArrays
 
 using VirtualArrays
+using Iterators
 
 import Base: size, getindex, checkbounds, display, RefValue, showerror
 export RingArray, size, checkbounds, display
@@ -71,13 +72,16 @@ end
 checkbounds(ring::RingArray) = true # because of warnings
 
 function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int64}...)
-
-    if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
-        throw(RingArrayBoundsError(ring, indexes))
-    else
-        for i in 2:N
-            if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
+    all_indexes = product(indexes...)
+    for i in all_indexes
+        i = expand_index(ring, i...)
+        try
+            checkbounds(ring, i...)
+        catch e
+            if typeof(e) == RingArrayBoundsError
                 throw(RingArrayBoundsError(ring, indexes))
+            else
+                rethrow(e)
             end
         end
     end
@@ -112,9 +116,6 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
-    i = expand_index(ring, i...)
-    println(i)
-    checkbounds(ring, i...)
     add_users(ring, i...)
     return get_view(ring, i...)
 end
@@ -151,23 +152,6 @@ function can_load_block!(ring::RingArray, block::AbstractArray)
 end
 
 expand_index(ring::RingArray) = nothing # Warnings
-
-function expand_index(ring::RingArray, i::UnitRange...)
-    last = i[end]
-    index = length(i)
-    temp = ones(Int, index - 1)
-    start = [temp..., last.start]
-    stop = [temp..., last.stop]
-
-    start = expand_index(ring, start...)
-    stop = expand_index(ring, stop...)
-
-    display(start)
-    display(stop)
-
-    return [i[1:end-1]..., start[index]:stop[index], start[index+1:end]...]
-
-end
 
 function expand_index{T, N}(ring::RingArray{T, N}, i::Int...)
     result = collect(i)
@@ -252,4 +236,3 @@ function check_dimensions(ring::RingArray, block::AbstractArray)
 end
 
 end
-
