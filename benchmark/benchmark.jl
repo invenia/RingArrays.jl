@@ -26,14 +26,19 @@ open(joinpath(Pkg.dir("RingArrays"), "benchmark", "benchmark_result"), "w") do b
 
     print_seperator(benchmark_file, "load_block")
 
-    function loading_no_views()
+    function loading_no_gc()
         ring = RingArray{Int, 1}(max_blocks=m_b, block_size=b_s, data_length=d_l)
         for i in 1:b_s[1]:d_l
+            prev_write = ring.next_write
             load_block(ring, big_data[i:i+b_s[1]-1])
+            let
+                view = ring[i:b_s[1]-1]
+            end
+            ring.num_users[prev_write] = 0
         end
     end
 
-    function loading_with_views()
+    function loading_with_gc()
         ring = RingArray{Int, 1}(max_blocks=m_b, block_size=b_s, data_length=d_l)
         for i in 1:b_s[1]:d_l
             load_block(ring, big_data[i:i+b_s[1]-1])
@@ -43,9 +48,9 @@ open(joinpath(Pkg.dir("RingArrays"), "benchmark", "benchmark_result"), "w") do b
         end
     end
 
-    println(benchmark_file, benchmark(loading_no_views, "loading with no views", "load_block", num_test), "\n")
-    println(benchmark_file, benchmark(loading_with_views, "loading with views", "load_block", num_test), "\n")
-    println(benchmark_file, compare([loading_no_views, loading_with_views], num_test), "\n")
+    println(benchmark_file, benchmark(loading_no_gc, "loading with no gc", "load_block", num_test), "\n")
+    println(benchmark_file, benchmark(loading_with_gc, "loading with gc", "load_block", num_test), "\n")
+    println(benchmark_file, compare([loading_no_gc, loading_with_gc], num_test), "\n")
 
     empty_ring = RingArray{Int, 1}(max_blocks=m_b, block_size=b_s, data_length=d_l)
     full_ring = RingArray{Int, 1}(max_blocks=m_b, block_size=b_s, data_length=d_l)
@@ -88,10 +93,40 @@ open(joinpath(Pkg.dir("RingArrays"), "benchmark", "benchmark_result"), "w") do b
     getindex_end_start_bench() = end_ring[end_ring.range.start]
     getindex_end_stop_bench() = end_ring[end_ring.range.stop]
 
+    getindex_range_full_bench() = full_ring[full_ring.range]
+    getindex_range_end_bench() = end_ring[end_ring.range]
+
     println(benchmark_file, benchmark(getindex_full_start_bench, "getindex full start ring", "full_ring[full_ring.range.start]", num_test), "\n")
     println(benchmark_file, benchmark(getindex_full_stop_bench, "getindex full stop ring", "full_ring[full_ring.range.stop]", num_test), "\n")
     println(benchmark_file, benchmark(getindex_end_start_bench, "getindex end start ring", "end_ring[end_ring.range.start]", num_test), "\n")
     println(benchmark_file, benchmark(getindex_end_stop_bench, "getindex end stop ring", "end_ring[end_ring.range.stop]", num_test), "\n")
     println(benchmark_file, compare([getindex_full_start_bench, getindex_full_stop_bench, getindex_end_start_bench, getindex_end_stop_bench], num_test), "\n")
+
+    print_seperator(benchmark_file, "getindex range")
+
+    getindex_range_full_all_bench() = full_ring[full_ring.range]
+    getindex_range_full_small_bench() = full_ring[full_ring.range.stop:full_ring.range.stop]
+    getindex_range_end_all_bench() = end_ring[end_ring.range]
+    getindex_range_end_small_bench() = end_ring[end_ring.range.stop:end_ring.range.stop]
+
+    println(benchmark_file, benchmark(getindex_range_full_all_bench, "getindex range full all ring", "full_ring[full_ring.range]", num_test), "\n")
+    println(benchmark_file, benchmark(getindex_range_full_small_bench, "getindex range full small ring", "full_ring[full_ring.range.stop:full_ring.range.stop]", num_test), "\n")
+    println(benchmark_file, benchmark(getindex_range_end_all_bench, "getindex range end all ring", "end_ring[end_ring.range]", num_test), "\n")
+    println(benchmark_file, benchmark(getindex_range_end_small_bench, "getindex range end small ring", "end_ring[end_ring.range:end_ring.range.stop]", num_test), "\n")
+    println(benchmark_file, compare([getindex_range_full_all_bench, getindex_range_full_small_bench, getindex_range_end_all_bench, getindex_range_end_small_bench], num_test), "\n")
+
+    print_seperator(benchmark_file, "overall")
+
+    standard() = 0
+    println(benchmark_file, compare(
+        [
+            standard,
+            loading_no_gc, loading_with_gc,
+            size_empty_bench, size_full_bench, size_end_bench,
+            checkbounds_full_bench, checkbounds_end_bench,
+            getindex_full_start_bench, getindex_full_stop_bench, getindex_end_start_bench, getindex_end_stop_bench,
+            getindex_range_full_all_bench, getindex_range_full_small_bench, getindex_range_end_all_bench, getindex_range_end_small_bench
+        ],
+        num_test), "\n")
 
 end
