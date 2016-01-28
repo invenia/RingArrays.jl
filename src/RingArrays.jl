@@ -78,7 +78,7 @@ function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int64}...)
         try
             checkbounds(ring, i...)
         catch e
-            if typeof(e) == RingArrayBoundsError
+            if isa(e, RingArrayBoundsError)
                 throw(RingArrayBoundsError(ring, indexes))
             else
                 rethrow(e)
@@ -150,8 +150,6 @@ function can_load_block!(ring::RingArray, block::AbstractArray)
 
     check_dimensions(ring, block)
 end
-
-expand_index(ring::RingArray) = nothing # Warnings
 
 function expand_index{T, N}(ring::RingArray{T, N}, i::Int...)
     result = collect(i)
