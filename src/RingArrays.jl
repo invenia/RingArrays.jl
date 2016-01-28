@@ -112,7 +112,8 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
-    #check_index(ring, i...)
+    i = expand_index(ring, i...)
+    println(i)
     checkbounds(ring, i...)
     add_users(ring, i...)
     return get_view(ring, i...)
@@ -147,6 +148,25 @@ function can_load_block!(ring::RingArray, block::AbstractArray)
     end
 
     check_dimensions(ring, block)
+end
+
+expand_index(ring::RingArray) = nothing # Warnings
+
+function expand_index(ring::RingArray, i::UnitRange...)
+    last = i[end]
+    index = length(i)
+    temp = ones(Int, index - 1)
+    start = [temp..., last.start]
+    stop = [temp..., last.stop]
+
+    start = expand_index(ring, start...)
+    stop = expand_index(ring, stop...)
+
+    display(start)
+    display(stop)
+
+    return [i[1:end-1]..., start[index]:stop[index], start[index+1:end]...]
+
 end
 
 function expand_index{T, N}(ring::RingArray{T, N}, i::Int...)
