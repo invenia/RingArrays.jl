@@ -13,7 +13,6 @@ facts("About creating RingArray") do
         test = RingArray{Int, 1}(max_blocks=s)
 
         @fact isdefined(test.blocks, 1:s...) --> false
-        @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
         @fact test.max_blocks --> s
         @fact test.next_write --> 1
         @fact test.num_users --> zeros(Int, s)
@@ -29,7 +28,6 @@ facts("About creating RingArray") do
         test = RingArray{Int, 1}(block_size=b_s)
 
         @fact isdefined(test.blocks, 1:s...) --> false
-        @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
         @fact test.max_blocks --> s
         @fact test.next_write --> 1
         @fact test.num_users --> zeros(Int, s)
@@ -44,7 +42,6 @@ facts("About creating RingArray") do
         d_l = 100
         test = RingArray{Int, 1}()
 
-        @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
         @fact test.max_blocks --> s
         @fact test.next_write --> 1
         @fact test.num_users --> zeros(Int, s)
@@ -59,7 +56,6 @@ facts("About creating RingArray") do
         d_l = 100
         test = RingArray{Int, 1}(max_blocks=s)
 
-        @pending test.blocks --> Array{AbstractArray{Int64,1},1}()
         @fact test.max_blocks --> s
         @fact test.next_write --> 1
         @fact test.num_users --> zeros(Int, s)
@@ -78,7 +74,6 @@ facts("About creating RingArray") do
         d_l = 100
         test = RingArray{Int, 2}(max_blocks=s, block_size=b_s, data_length=d_l)
 
-        @pending test.blocks --> Array{AbstractArray{Int64,2},1}()
         @fact test.max_blocks --> s
         @fact test.next_write --> 1
         @fact test.num_users --> zeros(Int, s)
@@ -93,7 +88,6 @@ facts("About creating RingArray") do
         d_l = 100
         test = RingArray{Int, 2}(max_blocks=s, block_size=b_s, data_length=d_l)
 
-        @pending test.blocks --> Array{AbstractArray{Int64,2},1}()
         @fact test.max_blocks --> s
         @fact test.next_write --> 1
         @fact test.num_users --> zeros(Int, s)
