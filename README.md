@@ -4,7 +4,7 @@
 
 RingArrays is a way to access a large dataset in incremental chucks to limit the amount of memory you need. You would use a RingArray when you are wanting to work with a massive dataset like an array.
 
-The idea of the RingArray is that is should act like a sliding window on a massive array where the window is the only part of the array you currently care about. The sliding window will move at the pace you tell it too and will contain as much data as you want.
+The idea of the RingArray is that it should act like a sliding window on a massive array where the window is the only part of the array you currently care about. The sliding window will move at the pace you tell it to and will contain as much data as you want.
 
 ## Installation
 
@@ -52,7 +52,7 @@ ring = RingArray{Int, 3}(max_blocks=10, block_size=(10,10,10), data_length=1000)
 
 ### Loading Blocks
 
-RingArrays need there blocks to be loaded manually.
+RingArrays need their blocks to be loaded manually.
 
 ```julia
 ring = RingArray{Int, 1}(max_blocks=5, block_size=(2,));
@@ -347,7 +347,7 @@ The output shows that the 2nd block was overwritten, but when we tried to overwr
 
 #### Reference counting is manage by RingArray
 
-You do not need to keep track of the reference counting yourself, RingArray will manage them. When getting a view, it will increment the count, and when that view goes out of scope, it will decrement it garbage collection or when you need to overwrite a block.
+When accessing elements of the RingArray where a view is returned, reference counters are incremented. Likewise, when the returned views go out of scope and the julia gc runs the reference counters are decremented. Only blocks with a count of 0 will be overwritten.
 
 Here is an example of being able to overwrite a block after we get rid of the view.
 
@@ -417,7 +417,7 @@ ERROR: OverwriteError: Cannot overwrite block 3 since it has 1 views
  [1002526877401869676,1037177028879382219] 
 ```
 
-The output shows that after we set `view = 1`, the block we want to overwrite no longer has any views into it and can no overwrite it.
+The output shows that after we set `view = 1`, the block we want to overwrite no longer has any views into it and can be overwrite it.
 
 ### Expansions
 
