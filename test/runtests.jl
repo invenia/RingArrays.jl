@@ -1,5 +1,14 @@
 using RingArrays
-using Base.Test
+using FactCheck
+using Mocking
 
-# write your own tests here
-@test 1 == 1
+if VERSION >= v"0.5-"
+    using Base.Test
+else
+    using BaseTestNext
+    const Test = BaseTestNext
+end
+
+include("RingArrays.jl")
+
+FactCheck.exitstatus()
