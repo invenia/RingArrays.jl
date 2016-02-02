@@ -18,7 +18,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing a block size") do
@@ -33,7 +33,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing nothing") do
@@ -47,7 +47,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing 0 for size") do
@@ -61,7 +61,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing a negative for size") do
