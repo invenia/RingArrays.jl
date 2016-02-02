@@ -634,7 +634,7 @@ facts("Getting data views") do
         end
         expected = cat(1, expected...)
 
-        @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int64,1}
+        @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int,1}
         @fact test[range] --> test.blocks[block_picked][range]
         @fact test[range] --> test[range]
         @fact test[test.range] --> expected[test.range]
@@ -706,7 +706,7 @@ facts("Getting data views") do
         end
         expected = cat(1, expected...)
 
-        @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int64,1}
+        @fact typeof(test[range]) --> VirtualArrays.VirtualArray{Int,1}
         @fact test[range] --> test.blocks[block_picked][range]
         @fact test[range] --> test[range]
         @fact test[test.range] --> expected[test.range]
@@ -731,7 +731,7 @@ facts("Getting data views") do
         end
         expected = cat(1, expected...)
 
-        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
+        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int,1}
         @fact test[ring_range] --> test.blocks[block_picked][range]
         @fact test[ring_range] --> test[ring_range]
         @fact test[test.range] --> expected[test.range]
@@ -756,7 +756,7 @@ facts("Getting data views") do
         end
         expected = cat(1, expected...)
 
-        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
+        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int,1}
         @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
@@ -784,7 +784,7 @@ facts("Getting data views") do
         end
         expected = cat(1, expected...)
 
-        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int64,1}
+        @fact typeof(test[ring_range]) --> VirtualArrays.VirtualArray{Int,1}
         @fact test[ring_range] --> [test.blocks[block_picked][range.start:end]...,
                                     test.blocks[block_picked + 1][1:range.stop - b_l]...]
         @fact test[ring_range] --> test[ring_range]
@@ -813,7 +813,7 @@ facts("Getting data views") do
         end
         expected = cat(1, expected...)
 
-        @fact typeof(test[ring_range...]) --> VirtualArrays.VirtualArray{Int64,2}
+        @fact typeof(test[ring_range...]) --> VirtualArrays.VirtualArray{Int,2}
         @fact test[ring_range...] --> [test.blocks[block_picked][range[1].start:end, range[2]];
                                     test.blocks[block_picked + 1][1:range[1].stop - b_l, range[2]]]
         @fact test[ring_range...] --> test[ring_range...]
@@ -852,7 +852,7 @@ facts("Getting data views") do
         end
         expected = cat(1, expected...)
 
-        @fact typeof(test[ring_range...]) --> VirtualArrays.VirtualArray{Int64, num_dimensions}
+        @fact typeof(test[ring_range...]) --> VirtualArrays.VirtualArray{Int, num_dimensions}
         @fact test[ring_range...] --> test.blocks[block_picked][ranges...]
         @fact test[ring_range...] --> test[ring_range...]
 
@@ -1894,7 +1894,7 @@ end
             end
             range = last_value_index - (overflow * 2) + 1 : last_value_index
 
-            @test typeof(expected[range]) == Array{Int64,1}
+            @test typeof(expected[range]) == Array{Int,1}
             @test_throws RingArrayBoundsError test[range]
 
             test_error = 1
