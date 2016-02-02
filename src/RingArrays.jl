@@ -72,13 +72,49 @@ end
 checkbounds(ring::RingArray) = true # because of warnings
 
 function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int}...)
-
-    if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
-        throw(RingArrayBoundsError(ring, indexes))
+    num_ranges = length(indexes)
+    if num_ranges >= N
+        if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
+            throw(RingArrayBoundsError(ring, indexes))
+        else
+            for i in 2:N
+                if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
+                    throw(RingArrayBoundsError(ring, indexes))
+                end
+            end
+        end
+        if indexes[N + 1:end] != ones(Int, num_ranges - N)
+            throw(RingArrayBoundsError(ring, indexes))
+        end
+    elseif num_ranges == 1
+        index = index[1]
+        if ring.range.start < allowed_ranges[1].start
+            throw(RingArrayBoundsError(ring, indexes))
+        end
+        allowed_ranges = get_allowed_ranges(ring)
+        for i in 1:length(allowed_ranges)
+            # if we found where the range index starts
+            if index.start <= allowed_ranges[i].stop
+                # if that range index ends before the cut off
+                if index.stop <= allowed_ranges[i].stop
+                    return true # stop searching TODO, one return
+                # if we are on the last possible range
+                elseif i == length(allowed_ranges)
+                    throw(RingArrayBoundsError(ring, indexes))
+                # if there is a gap between this valid range and the next
+                elseif allowed_ranges[i].stop != allowed_ranges[i + 1].start
+                    throw(RingArrayBoundsError(ring, indexes))
+                end
+            end
+        end
     else
-        for i in 2:N
-            if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
-                throw(RingArrayBoundsError(ring, indexes))
+        if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
+            throw(RingArrayBoundsError(ring, indexes))
+        else
+            for i in 2:num_ranges
+                if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
+                    throw(RingArrayBoundsError(ring, indexes))
+                end
             end
         end
     end
@@ -113,9 +149,6 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
-    if length(ring.block_size) != length(i)
-        throw(DimensionMismatch("RingArray expected UnitRange of dimension $N, but got $(length(i))"))
-    end
     add_users(ring, i...)
     return get_view(ring, i...)
 end
@@ -231,6 +264,23 @@ function check_dimensions(ring::RingArray, block::AbstractArray)
     if ring.block_size != size(block)
         throw(DimensionMismatch("block size $(size(block)) does not match what RingArray expects $(ring.block_size)"))
     end
+end
+
+function get_allowed_ranges{T, N}(ring::RingArray{T, N})
+    allowed_ranges = []
+
+    to_get_next_dim = 1
+    push!(allowed_ranges, ring.range)
+    for i in 1:N
+        prev_dim_ranges = allowed_ranges
+        to_get_next_dim *= size(ring)[i]
+        for j in 2:ring.block_size[2]
+            prev_dim_ranges += ring.data_length
+            push!(allowed_ranges, prev_dim_ranges...)
+        end
+    end
+
+    return allowed_ranges
 end
 
 end
