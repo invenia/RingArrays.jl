@@ -72,8 +72,8 @@ end
 checkbounds(ring::RingArray) = true # because of warnings
 
 function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int}...)
-    all_indexes = product(indexes...)
-    for i in all_indexes
+    all_indexes = collect(product(indexes...))
+    @simd for i in all_indexes
         i = expand_index(ring, i...)
         try
             checkbounds(ring, i...)
