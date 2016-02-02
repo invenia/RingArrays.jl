@@ -72,16 +72,13 @@ end
 checkbounds(ring::RingArray) = true # because of warnings
 
 function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int}...)
-    all_indexes = collect(product(indexes...))
-    @simd for i in all_indexes
-        i = expand_index(ring, i...)
-        try
-            checkbounds(ring, i...)
-        catch e
-            if isa(e, RingArrayBoundsError)
+
+    if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
+        throw(RingArrayBoundsError(ring, indexes))
+    else
+        for i in 2:N
+            if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
                 throw(RingArrayBoundsError(ring, indexes))
-            else
-                rethrow(e)
             end
         end
     end
@@ -116,6 +113,9 @@ function getindex(ring::RingArray, i::Int...)
 end
 
 function getindex(ring::RingArray, i::UnitRange...)
+    if length(ring.block_size) != length(i)
+        throw(DimensionMismatch("RingArray expected UnitRange of dimension $N, but got $(length(i))"))
+    end
     add_users(ring, i...)
     return get_view(ring, i...)
 end

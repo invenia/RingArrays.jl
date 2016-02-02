@@ -1747,6 +1747,7 @@ end
 # Trying out testset
 @testset "RingArray Tests" begin
     @testset "View" begin
+        #= Removed functionality for speed
         @testset "getting view from 2 d array like a 1 d array" begin
             s = rand(3:10)
             b_s = (rand(2:10),rand(2:10))
@@ -1910,6 +1911,7 @@ end
             test_range = tuple(test.range, test.block_size[2:end]...)
             @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
         end
+        =#
     end
     @testset "Error" begin
         if VERSION < v"0.5-" # Mocking.jl does not work in the latest julia
