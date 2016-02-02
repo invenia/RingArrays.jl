@@ -1,6 +1,6 @@
 # RingArrays
 
-[![Build Status](https://travis-ci.org/invenia/RingArrays.jl.svg?branch=develop)](https://travis-ci.org/invenia/RingArrays.jl) [![Build status](https://ci.appveyor.com/api/projects/status/u2yyj9necuobw7o7?svg=true)](https://ci.appveyor.com/project/samuel-massinon-invenia/ringarrays-jl) [![codecov.io](https://codecov.io/github/invenia/RingArrays.jl/coverage.svg?branch=develop)](https://codecov.io/github/invenia/RingArrays.jl?branch=develop)
+[![Build Status](https://travis-ci.org/invenia/RingArrays.jl.svg?branch=master)](https://travis-ci.org/invenia/RingArrays.jl) [![Build status](https://ci.appveyor.com/api/projects/status/u2yyj9necuobw7o7?svg=true)](https://ci.appveyor.com/project/samuel-massinon-invenia/ringarrays-jl) [![codecov.io](https://codecov.io/github/invenia/RingArrays.jl/coverage.svg?branch=master)](https://codecov.io/github/invenia/RingArrays.jl?branch=master)
 
 RingArrays is a way to access a large dataset in incremental chucks to limit the amount of memory you need. You would use a RingArray when you are wanting to work with a massive dataset like an array.
 
