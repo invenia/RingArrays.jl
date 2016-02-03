@@ -6,34 +6,34 @@
 1x12 DataFrames.DataFrame
 | Row | Category           | Benchmark                                                            | Iterations | TotalWall |
 |-----|--------------------|----------------------------------------------------------------------|------------|-----------|
-| 1   | "constructor ring" | "RingArray{Int, 1}(max_blocks=m_b, block_size=b_s, data_length=d_l)" | 100        | 7.1651e-5 |
+| 1   | "constructor ring" | "RingArray{Int, 1}(max_blocks=m_b, block_size=b_s, data_length=d_l)" | 100        | 7.1322e-5 |
 
 | Row | AverageWall | MaxWall  | MinWall | Timestamp             | JuliaHash                                  |
 |-----|-------------|----------|---------|-----------------------|--------------------------------------------|
-| 1   | 7.1651e-7   | 6.258e-6 | 6.35e-7 | "2016-02-02 12:01:45" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 7.1322e-7   | 7.202e-6 | 6.11e-7 | "2016-02-03 09:31:48" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                   | Benchmark         | Iterations | TotalWall | AverageWall | MaxWall | MinWall |
 |-----|----------------------------|-------------------|------------|-----------|-------------|---------|---------|
-| 1   | "constructor normal array" | "Array{Int, 1}()" | 100        | 2.9167e-5 | 2.9167e-7   | 4.39e-7 | 2.82e-7 |
+| 1   | "constructor normal array" | "Array{Int, 1}()" | 100        | 3.0678e-5 | 3.0678e-7   | 6.36e-7 | 2.86e-7 |
 
 | Row | Timestamp             | JuliaHash                                  | CodeHash                                   |
 |-----|-----------------------|--------------------------------------------|--------------------------------------------|
-| 1   | "2016-02-02 12:01:46" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" |
+| 1   | "2016-02-03 09:31:49" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" |
 
 | Row | OS       | CPUCores |
 |-----|----------|----------|
 | 1   | "Darwin" | 4        |
 
 2x4 DataFrames.DataFrame
-| Row | Function                         | Average   | Relative | Replications |
-|-----|----------------------------------|-----------|----------|--------------|
-| 1   | "constructor_ring_bench"         | 8.3564e-7 | 2.52849  | 100          |
-| 2   | "constructor_normal_array_bench" | 3.3049e-7 | 1.0      | 100          |
+| Row | Function                         | Average    | Relative | Replications |
+|-----|----------------------------------|------------|----------|--------------|
+| 1   | "constructor_ring_bench"         | 1.11191e-6 | 2.96565  | 100          |
+| 2   | "constructor_normal_array_bench" | 3.7493e-7  | 1.0      | 100          |
 
 
 ################################################################################
@@ -43,11 +43,11 @@
 1x12 DataFrames.DataFrame
 | Row | Category             | Benchmark    | Iterations | TotalWall | AverageWall | MaxWall   | MinWall   |
 |-----|----------------------|--------------|------------|-----------|-------------|-----------|-----------|
-| 1   | "loading with no gc" | "load_block" | 100        | 6.14769   | 0.0614769   | 0.0864921 | 0.0494293 |
+| 1   | "loading with no gc" | "load_block" | 100        | 5.83124   | 0.0583124   | 0.0931387 | 0.0483112 |
 
 | Row | Timestamp             | JuliaHash                                  | CodeHash                                   |
 |-----|-----------------------|--------------------------------------------|--------------------------------------------|
-| 1   | "2016-02-02 12:01:54" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" |
+| 1   | "2016-02-03 09:31:56" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" |
 
 | Row | OS       | CPUCores |
 |-----|----------|----------|
@@ -56,17 +56,17 @@
 1x12 DataFrames.DataFrame
 | Row | Category          | Benchmark    | Iterations | TotalWall | AverageWall | MaxWall  | MinWall   | Timestamp             |
 |-----|-------------------|--------------|------------|-----------|-------------|----------|-----------|-----------------------|
-| 1   | "loading with gc" | "load_block" | 100        | 11.2979   | 0.112979    | 0.201276 | 0.0956655 | "2016-02-02 12:02:05" |
+| 1   | "loading with gc" | "load_block" | 100        | 9.903     | 0.09903     | 0.116853 | 0.0956039 | "2016-02-03 09:32:06" |
 
 | Row | JuliaHash                                  | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|--------------------------------------------|----------|----------|
-| 1   | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 2x4 DataFrames.DataFrame
 | Row | Function          | Average   | Relative | Replications |
 |-----|-------------------|-----------|----------|--------------|
-| 1   | "loading_no_gc"   | 0.0676501 | 1.0      | 100          |
-| 2   | "loading_with_gc" | 0.114138  | 1.68718  | 100          |
+| 1   | "loading_no_gc"   | 0.0579361 | 1.0      | 100          |
+| 2   | "loading_with_gc" | 0.0995084 | 1.71755  | 100          |
 
 
 ################################################################################
@@ -74,13 +74,13 @@
 ################################################################################
 
 1x12 DataFrames.DataFrame
-| Row | Category          | Benchmark          | Iterations | TotalWall | AverageWall | MaxWall  | MinWall |
-|-----|-------------------|--------------------|------------|-----------|-------------|----------|---------|
-| 1   | "size empty ring" | "size(empty_ring)" | 100        | 3.1452e-5 | 3.1452e-7   | 2.213e-6 | 2.53e-7 |
+| Row | Category          | Benchmark          | Iterations | TotalWall | AverageWall | MaxWall | MinWall |
+|-----|-------------------|--------------------|------------|-----------|-------------|---------|---------|
+| 1   | "size empty ring" | "size(empty_ring)" | 100        | 2.6423e-5 | 2.6423e-7   | 7.5e-7  | 2.55e-7 |
 
 | Row | Timestamp             | JuliaHash                                  | CodeHash                                   |
 |-----|-----------------------|--------------------------------------------|--------------------------------------------|
-| 1   | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" |
+| 1   | "2016-02-03 09:32:22" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" |
 
 | Row | OS       | CPUCores |
 |-----|----------|----------|
@@ -89,29 +89,29 @@
 1x12 DataFrames.DataFrame
 | Row | Category         | Benchmark         | Iterations | TotalWall | AverageWall | MaxWall | MinWall | Timestamp             |
 |-----|------------------|-------------------|------------|-----------|-------------|---------|---------|-----------------------|
-| 1   | "size full ring" | "size(full_ring)" | 100        | 2.6063e-5 | 2.6063e-7   | 4.02e-7 | 2.53e-7 | "2016-02-02 12:02:24" |
+| 1   | "size full ring" | "size(full_ring)" | 100        | 2.553e-5  | 2.553e-7    | 3.81e-7 | 2.51e-7 | "2016-02-03 09:32:22" |
 
 | Row | JuliaHash                                  | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|--------------------------------------------|----------|----------|
-| 1   | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category        | Benchmark        | Iterations | TotalWall | AverageWall | MaxWall  | MinWall | Timestamp             |
 |-----|-----------------|------------------|------------|-----------|-------------|----------|---------|-----------------------|
-| 1   | "size end ring" | "size(end_ring)" | 100        | 2.7413e-5 | 2.7413e-7   | 1.479e-6 | 2.53e-7 | "2016-02-02 12:02:24" |
+| 1   | "size end ring" | "size(end_ring)" | 100        | 2.7361e-5 | 2.7361e-7   | 1.486e-6 | 2.56e-7 | "2016-02-03 09:32:22" |
 
 | Row | JuliaHash                                  | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|--------------------------------------------|----------|----------|
-| 1   | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category            | Benchmark        | Iterations | TotalWall | AverageWall | MaxWall  | MinWall |
 |-----|---------------------|------------------|------------|-----------|-------------|----------|---------|
-| 1   | "size normal array" | "size(big_data)" | 100        | 4.3573e-5 | 4.3573e-7   | 9.545e-6 | 2.51e-7 |
+| 1   | "size normal array" | "size(big_data)" | 100        | 2.7192e-5 | 2.7192e-7   | 1.713e-6 | 2.53e-7 |
 
 | Row | Timestamp             | JuliaHash                                  | CodeHash                                   |
 |-----|-----------------------|--------------------------------------------|--------------------------------------------|
-| 1   | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" |
+| 1   | "2016-02-03 09:32:22" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" |
 
 | Row | OS       | CPUCores |
 |-----|----------|----------|
@@ -120,10 +120,10 @@
 4x4 DataFrames.DataFrame
 | Row | Function                  | Average   | Relative | Replications |
 |-----|---------------------------|-----------|----------|--------------|
-| 1   | "size_empty_bench"        | 3.2408e-7 | 1.13354  | 100          |
-| 2   | "size_full_bench"         | 2.859e-7  | 1.0      | 100          |
-| 3   | "size_end_bench"          | 2.8613e-7 | 1.0008   | 100          |
-| 4   | "size_normal_array_bench" | 2.9064e-7 | 1.01658  | 100          |
+| 1   | "size_empty_bench"        | 3.1557e-7 | 1.08855  | 100          |
+| 2   | "size_full_bench"         | 2.899e-7  | 1.0      | 100          |
+| 3   | "size_end_bench"          | 3.5752e-7 | 1.23325  | 100          |
+| 4   | "size_normal_array_bench" | 2.9624e-7 | 1.02187  | 100          |
 
 
 ################################################################################
@@ -133,48 +133,48 @@
 1x12 DataFrames.DataFrame
 | Row | Category                | Benchmark                                      | Iterations | TotalWall | AverageWall |
 |-----|-------------------------|------------------------------------------------|------------|-----------|-------------|
-| 1   | "checkbounds full ring" | "checkbounds(full_ring, full_ring.range.stop)" | 100        | 6.0616e-5 | 6.0616e-7   |
+| 1   | "checkbounds full ring" | "checkbounds(full_ring, full_ring.range.stop)" | 100        | 6.5783e-5 | 6.5783e-7   |
 
 | Row | MaxWall  | MinWall | Timestamp             | JuliaHash                                  |
 |-----|----------|---------|-----------------------|--------------------------------------------|
-| 1   | 5.462e-6 | 5.27e-7 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 5.298e-6 | 5.31e-7 | "2016-02-03 09:32:22" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category               | Benchmark                                    | Iterations | TotalWall | AverageWall | MaxWall  |
 |-----|------------------------|----------------------------------------------|------------|-----------|-------------|----------|
-| 1   | "checkbounds end ring" | "checkbounds(end_ring, end_ring.range.stop)" | 100        | 6.2425e-5 | 6.2425e-7   | 2.771e-6 |
+| 1   | "checkbounds end ring" | "checkbounds(end_ring, end_ring.range.stop)" | 100        | 6.9406e-5 | 6.9406e-7   | 3.185e-6 |
 
 | Row | MinWall | Timestamp             | JuliaHash                                  |
 |-----|---------|-----------------------|--------------------------------------------|
-| 1   | 5.37e-7 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 5.43e-7 | "2016-02-03 09:32:22" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                   | Benchmark                                    | Iterations | TotalWall | AverageWall |
 |-----|----------------------------|----------------------------------------------|------------|-----------|-------------|
-| 1   | "checkbounds normal array" | "checkbounds(big_data, end_ring.range.stop)" | 100        | 3.7692e-5 | 3.7692e-7   |
+| 1   | "checkbounds normal array" | "checkbounds(big_data, end_ring.range.stop)" | 100        | 3.4619e-5 | 3.4619e-7   |
 
 | Row | MaxWall  | MinWall | Timestamp             | JuliaHash                                  |
 |-----|----------|---------|-----------------------|--------------------------------------------|
-| 1   | 4.208e-6 | 3.14e-7 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 3.839e-6 | 3.04e-7 | "2016-02-03 09:32:22" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 3x4 DataFrames.DataFrame
 | Row | Function                         | Average   | Relative | Replications |
 |-----|----------------------------------|-----------|----------|--------------|
-| 1   | "checkbounds_full_bench"         | 6.5744e-7 | 1.81428  | 100          |
-| 2   | "checkbounds_end_bench"          | 9.6912e-7 | 2.67439  | 100          |
-| 3   | "checkbounds_normal_array_bench" | 3.6237e-7 | 1.0      | 100          |
+| 1   | "checkbounds_full_bench"         | 5.843e-7  | 1.71424  | 100          |
+| 2   | "checkbounds_end_bench"          | 6.2526e-7 | 1.83441  | 100          |
+| 3   | "checkbounds_normal_array_bench" | 3.4085e-7 | 1.0      | 100          |
 
 
 ################################################################################
@@ -184,63 +184,63 @@
 1x12 DataFrames.DataFrame
 | Row | Category                   | Benchmark                          | Iterations | TotalWall   | AverageWall | MaxWall   |
 |-----|----------------------------|------------------------------------|------------|-------------|-------------|-----------|
-| 1   | "getindex full start ring" | "full_ring[full_ring.range.start]" | 100        | 0.000243325 | 2.43325e-6  | 2.6632e-5 |
+| 1   | "getindex full start ring" | "full_ring[full_ring.range.start]" | 100        | 0.000240368 | 2.40368e-6  | 2.3007e-5 |
 
 | Row | MinWall  | Timestamp             | JuliaHash                                  |
 |-----|----------|-----------------------|--------------------------------------------|
-| 1   | 1.937e-6 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 1.948e-6 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                  | Benchmark                         | Iterations | TotalWall   | AverageWall | MaxWall  |
 |-----|---------------------------|-----------------------------------|------------|-------------|-------------|----------|
-| 1   | "getindex full stop ring" | "full_ring[full_ring.range.stop]" | 100        | 0.000232663 | 2.32663e-6  | 5.782e-6 |
+| 1   | "getindex full stop ring" | "full_ring[full_ring.range.stop]" | 100        | 0.000225957 | 2.25957e-6  | 6.159e-6 |
 
 | Row | MinWall  | Timestamp             | JuliaHash                                  |
 |-----|----------|-----------------------|--------------------------------------------|
-| 1   | 2.032e-6 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 1.986e-6 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
-| Row | Category                  | Benchmark                        | Iterations | TotalWall   | AverageWall | MaxWall  |
-|-----|---------------------------|----------------------------------|------------|-------------|-------------|----------|
-| 1   | "getindex end start ring" | "end_ring[end_ring.range.start]" | 100        | 0.000228243 | 2.28243e-6  | 5.853e-6 |
+| Row | Category                  | Benchmark                        | Iterations | TotalWall   | AverageWall | MaxWall |
+|-----|---------------------------|----------------------------------|------------|-------------|-------------|---------|
+| 1   | "getindex end start ring" | "end_ring[end_ring.range.start]" | 100        | 0.000231095 | 2.31095e-6  | 7.03e-6 |
 
 | Row | MinWall  | Timestamp             | JuliaHash                                  |
 |-----|----------|-----------------------|--------------------------------------------|
-| 1   | 1.963e-6 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 1.974e-6 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                 | Benchmark                       | Iterations | TotalWall   | AverageWall | MaxWall  |
 |-----|--------------------------|---------------------------------|------------|-------------|-------------|----------|
-| 1   | "getindex end stop ring" | "end_ring[end_ring.range.stop]" | 100        | 0.000212401 | 2.12401e-6  | 3.327e-6 |
+| 1   | "getindex end stop ring" | "end_ring[end_ring.range.stop]" | 100        | 0.000212124 | 2.12124e-6  | 3.064e-6 |
 
 | Row | MinWall  | Timestamp             | JuliaHash                                  |
 |-----|----------|-----------------------|--------------------------------------------|
-| 1   | 1.942e-6 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 1.968e-6 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                | Benchmark                       | Iterations | TotalWall | AverageWall | MaxWall  | MinWall |
 |-----|-------------------------|---------------------------------|------------|-----------|-------------|----------|---------|
-| 1   | "getindex normal array" | "big_data[end_ring.range.stop]" | 100        | 3.9772e-5 | 3.9772e-7   | 2.538e-6 | 3.22e-7 |
+| 1   | "getindex normal array" | "big_data[end_ring.range.stop]" | 100        | 4.2726e-5 | 4.2726e-7   | 2.724e-6 | 3.54e-7 |
 
 | Row | Timestamp             | JuliaHash                                  | CodeHash                                   |
 |-----|-----------------------|--------------------------------------------|--------------------------------------------|
-| 1   | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "d120d2af5b899bb696ce6830f32a56d81aaeb143" |
+| 1   | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" |
 
 | Row | OS       | CPUCores |
 |-----|----------|----------|
@@ -249,11 +249,11 @@
 5x4 DataFrames.DataFrame
 | Row | Function                      | Average    | Relative | Replications |
 |-----|-------------------------------|------------|----------|--------------|
-| 1   | "getindex_full_start_bench"   | 3.33869e-6 | 9.27285  | 100          |
-| 2   | "getindex_full_stop_bench"    | 2.34411e-6 | 6.51051  | 100          |
-| 3   | "getindex_end_start_bench"    | 2.41358e-6 | 6.70346  | 100          |
-| 4   | "getindex_end_stop_bench"     | 2.4189e-6  | 6.71823  | 100          |
-| 5   | "getindex_normal_array_bench" | 3.6005e-7  | 1.0      | 100          |
+| 1   | "getindex_full_start_bench"   | 2.30783e-6 | 6.18887  | 100          |
+| 2   | "getindex_full_stop_bench"    | 2.23887e-6 | 6.00394  | 100          |
+| 3   | "getindex_end_start_bench"    | 2.34299e-6 | 6.28316  | 100          |
+| 4   | "getindex_end_stop_bench"     | 2.34607e-6 | 6.29142  | 100          |
+| 5   | "getindex_normal_array_bench" | 3.729e-7   | 1.0      | 100          |
 
 
 ################################################################################
@@ -261,92 +261,92 @@
 ################################################################################
 
 1x12 DataFrames.DataFrame
-| Row | Category                       | Benchmark                    | Iterations | TotalWall   | AverageWall | MaxWall   |
-|-----|--------------------------------|------------------------------|------------|-------------|-------------|-----------|
-| 1   | "getindex range full all ring" | "full_ring[full_ring.range]" | 100        | 0.000560949 | 5.60949e-6  | 6.0842e-5 |
+| Row | Category                       | Benchmark                    | Iterations | TotalWall  | AverageWall | MaxWall  |
+|-----|--------------------------------|------------------------------|------------|------------|-------------|----------|
+| 1   | "getindex range full all ring" | "full_ring[full_ring.range]" | 100        | 0.00045375 | 4.5375e-6   | 7.255e-6 |
 
 | Row | MinWall  | Timestamp             | JuliaHash                                  |
 |-----|----------|-----------------------|--------------------------------------------|
-| 1   | 4.217e-6 | "2016-02-02 12:02:24" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 4.189e-6 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                         | Benchmark                                              | Iterations | TotalWall   |
 |-----|----------------------------------|--------------------------------------------------------|------------|-------------|
-| 1   | "getindex range full small ring" | "full_ring[full_ring.range.stop:full_ring.range.stop]" | 100        | 0.000455608 |
+| 1   | "getindex range full small ring" | "full_ring[full_ring.range.stop:full_ring.range.stop]" | 100        | 0.000465335 |
 
 | Row | AverageWall | MaxWall  | MinWall  | Timestamp             | JuliaHash                                  |
 |-----|-------------|----------|----------|-----------------------|--------------------------------------------|
-| 1   | 4.55608e-6  | 6.859e-6 | 4.204e-6 | "2016-02-02 12:02:25" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 4.65335e-6  | 7.824e-6 | 4.194e-6 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
-| Row | Category                      | Benchmark                  | Iterations | TotalWall   | AverageWall | MaxWall  |
-|-----|-------------------------------|----------------------------|------------|-------------|-------------|----------|
-| 1   | "getindex range end all ring" | "end_ring[end_ring.range]" | 100        | 0.000467133 | 4.67133e-6  | 7.006e-6 |
+| Row | Category                      | Benchmark                  | Iterations | TotalWall | AverageWall | MaxWall   | MinWall  |
+|-----|-------------------------------|----------------------------|------------|-----------|-------------|-----------|----------|
+| 1   | "getindex range end all ring" | "end_ring[end_ring.range]" | 100        | 0.0005354 | 5.354e-6    | 3.1814e-5 | 4.223e-6 |
 
-| Row | MinWall  | Timestamp             | JuliaHash                                  |
-|-----|----------|-----------------------|--------------------------------------------|
-| 1   | 4.238e-6 | "2016-02-02 12:02:25" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| Row | Timestamp             | JuliaHash                                  | CodeHash                                   |
+|-----|-----------------------|--------------------------------------------|--------------------------------------------|
+| 1   | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" | "47179ff32f9a7efae5c1db80e3735b99c67970bf" |
 
-| Row | CodeHash                                   | OS       | CPUCores |
-|-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| Row | OS       | CPUCores |
+|-----|----------|----------|
+| 1   | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                        | Benchmark                                      | Iterations | TotalWall   |
 |-----|---------------------------------|------------------------------------------------|------------|-------------|
-| 1   | "getindex range end small ring" | "end_ring[end_ring.range:end_ring.range.stop]" | 100        | 0.000460869 |
+| 1   | "getindex range end small ring" | "end_ring[end_ring.range:end_ring.range.stop]" | 100        | 0.000471627 |
 
-| Row | AverageWall | MaxWall  | MinWall  | Timestamp             | JuliaHash                                  |
-|-----|-------------|----------|----------|-----------------------|--------------------------------------------|
-| 1   | 4.60869e-6  | 7.264e-6 | 4.217e-6 | "2016-02-02 12:02:25" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| Row | AverageWall | MaxWall  | MinWall | Timestamp             | JuliaHash                                  |
+|-----|-------------|----------|---------|-----------------------|--------------------------------------------|
+| 1   | 4.71627e-6  | 7.556e-6 | 4.21e-6 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                          | Benchmark                  | Iterations | TotalWall | AverageWall | MaxWall  |
 |-----|-----------------------------------|----------------------------|------------|-----------|-------------|----------|
-| 1   | "getindex range normal all array" | "big_data[end_ring.range]" | 100        | 7.9679e-5 | 7.9679e-7   | 4.803e-6 |
+| 1   | "getindex range normal all array" | "big_data[end_ring.range]" | 100        | 7.372e-5  | 7.372e-7    | 4.272e-6 |
 
 | Row | MinWall | Timestamp             | JuliaHash                                  |
 |-----|---------|-----------------------|--------------------------------------------|
-| 1   | 4.31e-7 | "2016-02-02 12:02:25" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 3.91e-7 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 1x12 DataFrames.DataFrame
 | Row | Category                            | Benchmark                                           | Iterations | TotalWall |
 |-----|-------------------------------------|-----------------------------------------------------|------------|-----------|
-| 1   | "getindex range normal small array" | "big_data[end_ring.range.stop:end_ring.range.stop]" | 100        | 5.9432e-5 |
+| 1   | "getindex range normal small array" | "big_data[end_ring.range.stop:end_ring.range.stop]" | 100        | 5.9242e-5 |
 
 | Row | AverageWall | MaxWall  | MinWall | Timestamp             | JuliaHash                                  |
 |-----|-------------|----------|---------|-----------------------|--------------------------------------------|
-| 1   | 5.9432e-7   | 4.372e-6 | 4.67e-7 | "2016-02-02 12:02:25" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
+| 1   | 5.9242e-7   | 3.917e-6 | 4.84e-7 | "2016-02-03 09:32:23" | "1f7c72e0e44f18b4d463e15fdbf68bbeee54dba0" |
 
 | Row | CodeHash                                   | OS       | CPUCores |
 |-----|--------------------------------------------|----------|----------|
-| 1   | "d120d2af5b899bb696ce6830f32a56d81aaeb143" | "Darwin" | 4        |
+| 1   | "47179ff32f9a7efae5c1db80e3735b99c67970bf" | "Darwin" | 4        |
 
 6x4 DataFrames.DataFrame
 | Row | Function                                  | Average    | Relative | Replications |
 |-----|-------------------------------------------|------------|----------|--------------|
-| 1   | "getindex_range_full_all_bench"           | 4.63036e-6 | 8.28359  | 100          |
-| 2   | "getindex_range_full_small_bench"         | 4.5977e-6  | 8.22516  | 100          |
-| 3   | "getindex_range_end_all_bench"            | 4.62041e-6 | 8.26579  | 100          |
-| 4   | "getindex_range_end_small_bench"          | 4.63481e-6 | 8.29155  | 100          |
-| 5   | "getindex_range_normal_array_all_bench"   | 7.2913e-7  | 1.30439  | 100          |
-| 6   | "getindex_range_normal_array_small_bench" | 5.5898e-7  | 1.0      | 100          |
+| 1   | "getindex_range_full_all_bench"           | 4.71117e-6 | 8.22725  | 100          |
+| 2   | "getindex_range_full_small_bench"         | 4.57547e-6 | 7.99027  | 100          |
+| 3   | "getindex_range_end_all_bench"            | 4.73776e-6 | 8.27368  | 100          |
+| 4   | "getindex_range_end_small_bench"          | 4.67063e-6 | 8.15645  | 100          |
+| 5   | "getindex_range_normal_array_all_bench"   | 7.6463e-7  | 1.3353   | 100          |
+| 6   | "getindex_range_normal_array_small_bench" | 5.7263e-7  | 1.0      | 100          |
 
 
 ################################################################################
@@ -356,27 +356,27 @@
 23x4 DataFrames.DataFrame
 | Row | Function                                  | Average    | Relative  | Replications |
 |-----|-------------------------------------------|------------|-----------|--------------|
-| 1   | "standard"                                | 2.3011e-7  | 1.0       | 100          |
-| 2   | "constructor_ring_bench"                  | 7.845e-7   | 3.40924   | 100          |
-| 3   | "constructor_normal_array_bench"          | 3.1697e-7  | 1.37747   | 100          |
-| 4   | "loading_no_gc"                           | 0.0661819  | 2.8761e5  | 100          |
-| 5   | "loading_with_gc"                         | 0.132099   | 5.74069e5 | 100          |
-| 6   | "size_empty_bench"                        | 3.8024e-7  | 1.65243   | 100          |
-| 7   | "size_full_bench"                         | 3.8775e-7  | 1.68506   | 100          |
-| 8   | "size_end_bench"                          | 3.5335e-7  | 1.53557   | 100          |
-| 9   | "size_normal_array_bench"                 | 3.084e-7   | 1.34023   | 100          |
-| 10  | "checkbounds_full_bench"                  | 6.6118e-7  | 2.87332   | 100          |
-| 11  | "checkbounds_end_bench"                   | 6.3901e-7  | 2.77698   | 100          |
-| 12  | "checkbounds_normal_array_bench"          | 3.4269e-7  | 1.48924   | 100          |
-| 13  | "getindex_full_start_bench"               | 2.35316e-6 | 10.2262   | 100          |
-| 14  | "getindex_full_stop_bench"                | 2.34508e-6 | 10.1911   | 100          |
-| 15  | "getindex_end_start_bench"                | 2.64174e-6 | 11.4803   | 100          |
-| 16  | "getindex_end_stop_bench"                 | 2.35034e-6 | 10.214    | 100          |
-| 17  | "getindex_normal_array_bench"             | 3.6426e-7  | 1.58298   | 100          |
-| 18  | "getindex_range_full_all_bench"           | 4.79349e-6 | 20.8313   | 100          |
-| 19  | "getindex_range_full_small_bench"         | 5.83084e-6 | 25.3394   | 100          |
-| 20  | "getindex_range_end_all_bench"            | 7.61911e-6 | 33.1107   | 100          |
-| 21  | "getindex_range_end_small_bench"          | 5.8477e-6  | 25.4126   | 100          |
-| 22  | "getindex_range_normal_array_all_bench"   | 5.5964e-7  | 2.43205   | 100          |
-| 23  | "getindex_range_normal_array_small_bench" | 5.6991e-7  | 2.47669   | 100          |
+| 1   | "standard"                                | 2.5898e-7  | 1.0       | 100          |
+| 2   | "constructor_ring_bench"                  | 8.1922e-7  | 3.16326   | 100          |
+| 3   | "constructor_normal_array_bench"          | 3.5349e-7  | 1.36493   | 100          |
+| 4   | "loading_no_gc"                           | 0.0578244  | 2.23277e5 | 100          |
+| 5   | "loading_with_gc"                         | 0.100234   | 3.87034e5 | 100          |
+| 6   | "size_empty_bench"                        | 2.7994e-7  | 1.08093   | 100          |
+| 7   | "size_full_bench"                         | 2.7944e-7  | 1.079     | 100          |
+| 8   | "size_end_bench"                          | 2.7954e-7  | 1.07939   | 100          |
+| 9   | "size_normal_array_bench"                 | 2.7797e-7  | 1.07333   | 100          |
+| 10  | "checkbounds_full_bench"                  | 7.7904e-7  | 3.00811   | 100          |
+| 11  | "checkbounds_end_bench"                   | 6.3212e-7  | 2.44081   | 100          |
+| 12  | "checkbounds_normal_array_bench"          | 3.3837e-7  | 1.30655   | 100          |
+| 13  | "getindex_full_start_bench"               | 2.28448e-6 | 8.82107   | 100          |
+| 14  | "getindex_full_stop_bench"                | 2.24423e-6 | 8.66565   | 100          |
+| 15  | "getindex_end_start_bench"                | 2.28357e-6 | 8.81755   | 100          |
+| 16  | "getindex_end_stop_bench"                 | 2.29088e-6 | 8.84578   | 100          |
+| 17  | "getindex_normal_array_bench"             | 3.6052e-7  | 1.39208   | 100          |
+| 18  | "getindex_range_full_all_bench"           | 4.47271e-6 | 17.2705   | 100          |
+| 19  | "getindex_range_full_small_bench"         | 4.4528e-6  | 17.1936   | 100          |
+| 20  | "getindex_range_end_all_bench"            | 4.51157e-6 | 17.4205   | 100          |
+| 21  | "getindex_range_end_small_bench"          | 4.48831e-6 | 17.3307   | 100          |
+| 22  | "getindex_range_normal_array_all_bench"   | 5.1065e-7  | 1.97177   | 100          |
+| 23  | "getindex_range_normal_array_small_bench" | 5.2678e-7  | 2.03406   | 100          |
 
