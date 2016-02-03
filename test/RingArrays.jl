@@ -1911,46 +1911,4 @@ end
             @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
         end
     end
-    @testset "Error" begin
-        if VERSION < v"0.5-" # Mocking.jl does not work in the latest julia
-            @testset "non RingArrayBoundsError when checking the bounds of a range" begin
-                s = rand(3:10)
-                b_s = (rand(2:10),)
-                block_picked = rand(3:s)
-                index_in_block = rand(1:b_s[1])
-                overflow = s * b_s[1]
-                index = index_in_block + (block_picked - 1) * b_s[1] + overflow
-                d_l = index + (b_s[1] - index % b_s[1])
-
-                test = RingArray{Int, 1}(max_blocks=s, block_size=b_s, data_length=d_l)
-
-                expected = []
-                for i in 1:index ÷ b_s[1] + 1
-                    push!(expected, rand(Int, test.block_size))
-                    load_block(test, expected[end])
-                end
-                expected = cat(1, expected...)
-
-
-                error_msg = randstring(100)
-                function bad_check{T, N}(ring::RingArray{T, N}, indexes::Int...)
-                    throw(ErrorException(error_msg))
-                end
-                patch = Patch(RingArrays.checkbounds, bad_check)
-
-                mend(patch) do
-                    @fact_throws ErrorException test[index:index]
-
-                    test_error = 1
-                    try
-                        test[index:index]
-                    catch e
-                        test_error = e
-                    end
-
-                    @test test_error.msg == error_msg
-                end
-            end
-        end
-    end
 end
