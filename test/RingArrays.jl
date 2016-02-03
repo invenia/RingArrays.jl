@@ -1207,7 +1207,8 @@ facts("Using checkbounds") do
             push!(index_in_block, rand(1:b_s[i]))
         end
         overflow = s * b_s[1]
-        index_in_block[rand(2:num_dimensions)] += overflow
+        bad_index_index = rand(2:num_dimensions)
+        index_in_block[bad_index_index] += b_s[bad_index_index]
         index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2:end]...)
         d_l = b_s[1] * s
 
