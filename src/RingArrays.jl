@@ -84,8 +84,8 @@ function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int}...)
         end
     elseif num_ranges == 1
         index = indexes[1]
-        if ring.range.start > index.start % ring.data_length  ||
-            ring.range.stop < index.stop % ring.data_length
+        if ring.range.start > fix_zero_index(index.start, ring.data_length)  ||
+            ring.range.stop < fix_zero_index(index.stop, ring.data_length)
             throw(RingArrayBoundsError(ring, indexes))
         end
         if get_last_index(ring) < index.stop
@@ -104,7 +104,7 @@ function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int}...)
         for i in num_ranges:N
             largest_index_allowed *= size(ring)[i]
         end
-        if 1 > indexs[num_ranges].start || largest_index_allowed < indexes[num_ranges].stop
+        if 1 > indexes[num_ranges].start || largest_index_allowed < indexes[num_ranges].stop
             throw(RingArrayBoundsError(ring, indexes))
         end
     end
