@@ -88,6 +88,9 @@ function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int}...)
             ring.range.stop < fix_zero_index(index.stop, ring.data_length)
             throw(RingArrayBoundsError(ring, indexes))
         end
+        if divide(index.start, ring.data_length) != divide(index.stop, ring.data_length)
+            throw(RingArrayBoundsError(ring, indexes))
+        end
         if get_last_index(ring) < index.stop
             throw(RingArrayBoundsError(ring, indexes))
         end

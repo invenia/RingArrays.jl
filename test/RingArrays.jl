@@ -1910,6 +1910,54 @@ end
             test_range = tuple(test.range, test.block_size[2:end]...)
             @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
         end
+        @testset "testing a bad range that ends are both in valid ranges" begin
+            s = rand(3:10)
+            num_dimensions = rand(3:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            index = index_in_block + (block_picked - 1) * b_s[1] + overflow * num_overflows
+            d_l = index + (b_s[1] - index % b_s[1])
+            index_overflow = index + d_l
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:index ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            last_value_index = test.range.stop
+            for size in test.block_size[2:end]
+                last_value_index *= size
+            end
+            start_value_index = (RingArrays.divide(last_value_index, test.data_length) - 1) * test.data_length - b_s[1]
+            range = start_value_index:last_value_index
+
+            @test typeof(expected[range]) == Array{Int,1}
+            @test_throws RingArrayBoundsError test[range]
+
+            test_error = 1
+            try
+                test[range]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
+        end
         @testset "testing a bad range that is within the length of the RingArray but not valid" begin
             s = rand(3:10)
             num_dimensions = rand(3:6)
