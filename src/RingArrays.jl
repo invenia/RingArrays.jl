@@ -264,22 +264,4 @@ function get_last_index(ring::RingArray)
     return last_index
 end
 
-# warning, very dumb/cool idea below
-function get_allowed_ranges{T, N}(ring::RingArray{T, N})
-    allowed_ranges = []
-
-    to_get_next_dim = 1
-    push!(allowed_ranges, ring.range)
-    for i in 1:N
-        prev_dim_ranges = allowed_ranges
-        to_get_next_dim *= size(ring)[i]
-        for j in 2:ring.block_size[2]
-            prev_dim_ranges += ring.data_length
-            push!(allowed_ranges, prev_dim_ranges...)
-        end
-    end
-
-    return allowed_ranges
-end
-
 end
