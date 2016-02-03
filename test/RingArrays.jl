@@ -2134,19 +2134,12 @@ end
             end
             expected = cat(1, expected...)
 
-            last_value_index = test.range.stop
-            for size in test.block_size[2:end]
-                last_value_index *= size
-            end
-            range = last_value_index - overflow + 1 : last_value_index
-            range += test.data_length * rand(1:20)
-
-            @test_throws BoundsError expected[range]
-            @test_throws RingArrayBoundsError test[range]
+            @test_throws BoundsError expected[ring_range...]
+            @test_throws RingArrayBoundsError test[ring_range...]
 
             test_error = 1
             try
-                test[range]
+                test[ring_range...]
             catch e
                 test_error = e
             end
@@ -2155,7 +2148,7 @@ end
             showerror(occured, test_error)
 
             test_range = tuple(test.range, test.block_size[2:end]...)
-            @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
+            @test occured.data == "RingArrayBoundsError: Cannot index $(ring_range), outside of range $test_range".data
         end
         @testset "testing a bad range in the middle range when indexing into an N d array with an M d index" begin
             s = rand(3:10)
@@ -2199,19 +2192,12 @@ end
             end
             expected = cat(1, expected...)
 
-            last_value_index = test.range.stop
-            for size in test.block_size[2:end]
-                last_value_index *= size
-            end
-            range = last_value_index - overflow + 1 : last_value_index
-            range += test.data_length * rand(1:20)
-
-            @test_throws BoundsError expected[range]
-            @test_throws RingArrayBoundsError test[range]
+            @test_throws BoundsError expected[ring_range...]
+            @test_throws RingArrayBoundsError test[ring_range...]
 
             test_error = 1
             try
-                test[range]
+                test[ring_range...]
             catch e
                 test_error = e
             end
@@ -2220,7 +2206,64 @@ end
             showerror(occured, test_error)
 
             test_range = tuple(test.range, test.block_size[2:end]...)
-            @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
+            @test occured.data == "RingArrayBoundsError: Cannot index $(ring_range), outside of range $test_range".data
+        end
+        @testset "testing a bad range in the last range when indexing into an N d array with an M d index" begin
+            s = rand(3:10)
+            num_dimensions = rand(4:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            num_indexes = rand(3:num_dimensions - 1) # M < N
+            bad_range = rand(2:num_indexes - 1) # M < N
+
+            ranges = []
+            for i in 1:num_indexes
+                start = rand(1:b_s[i])
+                last = rand(start:b_s[i])
+                push!(ranges, start:last)
+            end
+
+            increase_m_range = 1
+            for size in b_s[num_indexes:num_dimensions]
+                increase_m_range *= size
+            end
+            increase_m_range += 1
+
+            ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows,
+                ranges[2:end - 1]..., ranges[end].start : increase_m_range)
+            d_l = ring_range[1].stop + (b_s[1] - ring_range[1].stop % b_s[1])
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            @test_throws BoundsError expected[ring_range...]
+            @test_throws RingArrayBoundsError test[ring_range...]
+
+            test_error = 1
+            try
+                test[ring_range...]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $(ring_range), outside of range $test_range".data
         end
     end
 end
