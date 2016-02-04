@@ -18,7 +18,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing a block size") do
@@ -33,7 +33,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing nothing") do
@@ -47,7 +47,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing 0 for size") do
@@ -61,7 +61,7 @@ facts("About creating RingArray") do
         @fact test.num_users --> zeros(Int, s)
         @fact test.block_size --> b_s
         @fact test.range --> 1:0
-        @fact size(test) --> tuple(b_s[1]*s,)
+        @fact size(test) --> tuple(d_l,)
         @fact test.data_length --> d_l
     end
     context("passing a negative for size") do
@@ -1207,7 +1207,8 @@ facts("Using checkbounds") do
             push!(index_in_block, rand(1:b_s[i]))
         end
         overflow = s * b_s[1]
-        index_in_block[rand(2:num_dimensions)] += overflow
+        bad_index_index = rand(2:num_dimensions)
+        index_in_block[bad_index_index] += b_s[bad_index_index]
         index = (index_in_block[1] + (block_picked - 1) * b_s[1], index_in_block[2:end]...)
         d_l = b_s[1] * s
 
@@ -1910,47 +1911,408 @@ end
             test_range = tuple(test.range, test.block_size[2:end]...)
             @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
         end
-    end
-    @testset "Error" begin
-        if VERSION < v"0.5-" # Mocking.jl does not work in the latest julia
-            @testset "non RingArrayBoundsError when checking the bounds of a range" begin
-                s = rand(3:10)
-                b_s = (rand(2:10),)
-                block_picked = rand(3:s)
-                index_in_block = rand(1:b_s[1])
-                overflow = s * b_s[1]
-                index = index_in_block + (block_picked - 1) * b_s[1] + overflow
-                d_l = index + (b_s[1] - index % b_s[1])
-
-                test = RingArray{Int, 1}(max_blocks=s, block_size=b_s, data_length=d_l)
-
-                expected = []
-                for i in 1:index ÷ b_s[1] + 1
-                    push!(expected, rand(Int, test.block_size))
-                    load_block(test, expected[end])
-                end
-                expected = cat(1, expected...)
-
-
-                error_msg = randstring(100)
-                function bad_check{T, N}(ring::RingArray{T, N}, indexes::Int...)
-                    throw(ErrorException(error_msg))
-                end
-                patch = Patch(RingArrays.checkbounds, bad_check)
-
-                mend(patch) do
-                    @fact_throws ErrorException test[index:index]
-
-                    test_error = 1
-                    try
-                        test[index:index]
-                    catch e
-                        test_error = e
-                    end
-
-                    @test test_error.msg == error_msg
-                end
+        @testset "testing a bad range that ends are both in valid ranges" begin
+            s = rand(3:10)
+            num_dimensions = rand(3:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
             end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            index = index_in_block + (block_picked - 1) * b_s[1] + overflow * num_overflows
+            d_l = index + (b_s[1] - index % b_s[1])
+            index_overflow = index + d_l
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:index ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            last_value_index = test.range.stop
+            for size in test.block_size[2:end]
+                last_value_index *= size
+            end
+            start_value_index = (RingArrays.divide(last_value_index, test.data_length) - 1) * test.data_length - b_s[1]
+            range = start_value_index:last_value_index
+
+            @test typeof(expected[range]) == Array{Int,1}
+            @test_throws RingArrayBoundsError test[range]
+
+            test_error = 1
+            try
+                test[range]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
+        end
+        @testset "testing a bad range that is within the length of the RingArray but not valid" begin
+            s = rand(3:10)
+            num_dimensions = rand(3:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            index = index_in_block + (block_picked - 1) * b_s[1] + overflow * num_overflows
+            d_l = index + (b_s[1] - index % b_s[1])
+            index_overflow = index + d_l
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:index ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            range = test.range - 1
+
+            @test typeof(expected[range]) == Array{Int,1}
+            @test_throws RingArrayBoundsError test[range]
+
+            test_error = 1
+            try
+                test[range]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
+        end
+        @testset "testing a bad range that is valid but outside the length of the RingArray" begin
+            s = rand(3:10)
+            num_dimensions = rand(3:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            index = index_in_block + (block_picked - 1) * b_s[1] + overflow * num_overflows
+            d_l = index + (b_s[1] - index % b_s[1])
+            index_overflow = index + d_l
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:index ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            last_value_index = test.range.stop
+            for size in test.block_size[2:end]
+                last_value_index *= size
+            end
+            range = last_value_index - overflow + 1 : last_value_index
+            range += test.data_length * rand(1:20)
+
+            @test_throws BoundsError expected[range]
+            @test_throws RingArrayBoundsError test[range]
+
+            test_error = 1
+            try
+                test[range]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $((range,)), outside of range $test_range".data
+        end
+        @testset "getting view from N d array like a M d array (M < N) after overflow" begin
+            s = rand(3:10)
+            num_dimensions = rand(3:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            num_indexes = rand(2:num_dimensions - 1) # M < N
+
+            ranges = []
+            for i in 1:num_indexes
+                start = rand(1:b_s[i])
+                last = rand(start:b_s[i])
+                push!(ranges, start:last)
+            end
+            ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows, ranges[2:end]...)
+            d_l = ring_range[1].stop + (b_s[1] - ring_range[1].stop % b_s[1])
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            dim = rand(2:num_dimensions)
+            last_value_index = test.range.stop
+            for size in test.block_size[2:dim]
+                last_value_index *= size
+            end
+            range = last_value_index - overflow + 1 : last_value_index
+
+            @test test[ring_range...] == expected[ring_range...]
+            @test test[test.range] == expected[test.range]
+        end
+        @testset "getting view from N d array like a M d array (M < N) after overflow where the Mth index is larger" begin
+            s = rand(3:10)
+            num_dimensions = rand(3:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            num_indexes = rand(2:num_dimensions - 1) # M < N
+
+            ranges = []
+            for i in 1:num_indexes
+                start = rand(1:b_s[i])
+                last = rand(start:b_s[i])
+                push!(ranges, start:last)
+            end
+
+            increase_m_range = 1
+            for size in b_s[num_indexes:num_dimensions]
+                increase_m_range *= size
+            end
+
+            ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows,
+                ranges[2:end-1]..., ranges[end].start : increase_m_range)
+            d_l = ring_range[1].stop + (b_s[1] - ring_range[1].stop % b_s[1])
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            dim = rand(2:num_dimensions)
+            last_value_index = test.range.stop
+            for size in test.block_size[2:dim]
+                last_value_index *= size
+            end
+            range = last_value_index - overflow + 1 : last_value_index
+
+            @test test[ring_range...] == expected[ring_range...]
+            @test test[test.range] == expected[test.range]
+        end
+        @testset "testing a bad range in the first range when indexing into an N d array with an M d index" begin
+            s = rand(3:10)
+            num_dimensions = rand(3:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            num_indexes = rand(2:num_dimensions - 1) # M < N
+
+            ranges = []
+            for i in 1:num_indexes
+                start = rand(1:b_s[i])
+                last = rand(start:b_s[i])
+                push!(ranges, start:last)
+            end
+
+            increase_m_range = 1
+            for size in b_s[num_indexes:num_dimensions]
+                increase_m_range *= size
+            end
+
+            ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows,
+                ranges[2:end-1]..., ranges[end].start : increase_m_range)
+            d_l = ring_range[1].stop + (b_s[1] - ring_range[1].stop % b_s[1])
+
+            # modify the first range to be out of bounds
+            ring_range = (ring_range[1] + d_l * rand(1:5), ring_range[2:end]...)
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:d_l ÷ b_s[1]
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            @test_throws BoundsError expected[ring_range...]
+            @test_throws RingArrayBoundsError test[ring_range...]
+
+            test_error = 1
+            try
+                test[ring_range...]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $(ring_range), outside of range $test_range".data
+        end
+        @testset "testing a bad range in the middle range when indexing into an N d array with an M d index" begin
+            s = rand(3:10)
+            num_dimensions = rand(4:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            num_indexes = rand(3:num_dimensions - 1) # M < N
+            bad_range = rand(2:num_indexes - 1) # M < N
+
+            ranges = []
+            for i in 1:num_indexes
+                start = rand(1:b_s[i])
+                last = rand(start:b_s[i])
+                push!(ranges, start:last)
+            end
+
+            increase_m_range = 1
+            for size in b_s[num_indexes:num_dimensions]
+                increase_m_range *= size
+            end
+
+            ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows,
+                ranges[2:bad_range - 1]...,
+                ranges[bad_range] + b_s[bad_range] + 1,
+                ranges[bad_range + 1:end - 1]..., ranges[end].start : increase_m_range)
+            d_l = ring_range[1].stop + (b_s[1] - ring_range[1].stop % b_s[1])
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            @test_throws BoundsError expected[ring_range...]
+            @test_throws RingArrayBoundsError test[ring_range...]
+
+            test_error = 1
+            try
+                test[ring_range...]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $(ring_range), outside of range $test_range".data
+        end
+        @testset "testing a bad range in the last range when indexing into an N d array with an M d index" begin
+            s = rand(3:10)
+            num_dimensions = rand(4:6)
+            b_s = []
+            for i in 1:num_dimensions
+                push!(b_s, rand(1:10))
+            end
+            b_s = tuple(b_s...)
+            block_picked = rand(3:s)
+            index_in_block = (rand(1:b_s[1]))
+            overflow = s * b_s[1]
+            num_overflows = rand(1:10)
+            num_indexes = rand(3:num_dimensions - 1) # M < N
+            bad_range = rand(2:num_indexes - 1) # M < N
+
+            ranges = []
+            for i in 1:num_indexes
+                start = rand(1:b_s[i])
+                last = rand(start:b_s[i])
+                push!(ranges, start:last)
+            end
+
+            increase_m_range = 1
+            for size in b_s[num_indexes:num_dimensions]
+                increase_m_range *= size
+            end
+            increase_m_range += 1
+
+            ring_range = (ranges[1] + (block_picked - 1) * b_s[1] + overflow * num_overflows,
+                ranges[2:end - 1]..., ranges[end].start : increase_m_range)
+            d_l = ring_range[1].stop + (b_s[1] - ring_range[1].stop % b_s[1])
+
+            test = RingArray{Int, num_dimensions}(max_blocks=s, block_size=b_s, data_length=d_l)
+
+            expected = []
+            for i in 1:ring_range[1].stop ÷ b_s[1] + 1
+                push!(expected, rand(Int, test.block_size))
+                load_block(test, expected[end])
+            end
+            expected = cat(1, expected...)
+
+            @test_throws BoundsError expected[ring_range...]
+            @test_throws RingArrayBoundsError test[ring_range...]
+
+            test_error = 1
+            try
+                test[ring_range...]
+            catch e
+                test_error = e
+            end
+
+            occured = IOBuffer()
+            showerror(occured, test_error)
+
+            test_range = tuple(test.range, test.block_size[2:end]...)
+            @test occured.data == "RingArrayBoundsError: Cannot index $(ring_range), outside of range $test_range".data
         end
     end
 end

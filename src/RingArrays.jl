@@ -63,26 +63,52 @@ end
 
 function size{T, N}(ring::RingArray{T, N})
     if N <= 1
-        return tuple(ring.block_length * ring.max_blocks,)
+        return tuple(ring.data_length,)
     else
-        return tuple(ring.block_length * ring.max_blocks, ring.block_size[2:end]...)
+        return tuple(ring.data_length, ring.block_size[2:end]...)
     end
 end
 
 checkbounds(ring::RingArray) = true # because of warnings
 
 function checkbounds{T, N}(ring::RingArray{T, N}, indexes::UnitRange{Int}...)
-    all_indexes = product(indexes...)
-    for i in all_indexes
-        i = expand_index(ring, i...)
-        try
-            checkbounds(ring, i...)
-        catch e
-            if isa(e, RingArrayBoundsError)
+    num_ranges = length(indexes)
+    if num_ranges >= N
+        if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
+            throw(RingArrayBoundsError(ring, indexes))
+        end
+        for i in 2:N
+            if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
                 throw(RingArrayBoundsError(ring, indexes))
-            else
-                rethrow(e)
             end
+        end
+    elseif num_ranges == 1
+        index = indexes[1]
+        if ring.range.start > fix_zero_index(index.start, ring.data_length)  ||
+            ring.range.stop < fix_zero_index(index.stop, ring.data_length)
+            throw(RingArrayBoundsError(ring, indexes))
+        end
+        if divide(index.start, ring.data_length) != divide(index.stop, ring.data_length)
+            throw(RingArrayBoundsError(ring, indexes))
+        end
+        if get_last_index(ring) < index.stop
+            throw(RingArrayBoundsError(ring, indexes))
+        end
+    else
+        if ring.range.start > indexes[1].start || ring.range.stop < indexes[1].stop
+            throw(RingArrayBoundsError(ring, indexes))
+        end
+        for i in 2:num_ranges - 1
+            if 1 > indexes[i].start || ring.block_size[i] < indexes[i].stop
+                throw(RingArrayBoundsError(ring, indexes))
+            end
+        end
+        largest_index_allowed = 1
+        for i in num_ranges:N
+            largest_index_allowed *= size(ring)[i]
+        end
+        if 1 > indexes[num_ranges].start || largest_index_allowed < indexes[num_ranges].stop
+            throw(RingArrayBoundsError(ring, indexes))
         end
     end
     return true
@@ -231,6 +257,14 @@ function check_dimensions(ring::RingArray, block::AbstractArray)
     if ring.block_size != size(block)
         throw(DimensionMismatch("block size $(size(block)) does not match what RingArray expects $(ring.block_size)"))
     end
+end
+
+function get_last_index(ring::RingArray)
+    last_index = 1
+    for i in size(ring)
+        last_index *= i
+    end
+    return last_index
 end
 
 end
