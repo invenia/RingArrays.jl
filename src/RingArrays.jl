@@ -1,7 +1,6 @@
 module RingArrays
 
 using VirtualArrays
-using Iterators
 
 import Base: size, getindex, checkbounds, display, RefValue, showerror
 export RingArray, size, checkbounds, display
