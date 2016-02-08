@@ -8,7 +8,7 @@ The idea of the RingArray is that it should act like a sliding window on a massi
 
 ## Installation
 
-To get a copy of RingArray, you can run `Pkg.clone("git@github.com:invenia/RingArrays.jl.git")`.
+To get a copy of RingArray, you can run `Pkg.add("RingArrays")`.
 
 ## Read Only
 
@@ -38,7 +38,7 @@ ERROR: indexing not defined for RingArrays.RingArray{Int64,1}
 
 ### Creating
 
-Creating a RingArray only needs two values, both of which have default if you pass nothing.
+Creating a RingArray only needs three values, all of which have default if you pass nothing.
 
 ```julia
 ring = RingArray{Int, 3}(max_blocks=10, block_size=(10,10,10), data_length=1000)
