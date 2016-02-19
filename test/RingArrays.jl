@@ -344,7 +344,7 @@ facts("Getting values from RingArray") do
         num_dimensions = rand(3:6)
         b_s = []
         for i in 1:num_dimensions
-            push!(b_s, rand(1:10))
+            push!(b_s, rand(2:10))
         end
         b_s = tuple(b_s...)
         block_picked = rand(3:s)
@@ -375,7 +375,7 @@ facts("Getting values from RingArray") do
         num_dimensions = rand(3:6)
         b_s = []
         for i in 1:num_dimensions
-            push!(b_s, rand(1:10))
+            push!(b_s, rand(2:10))
         end
         b_s = tuple(b_s...)
         block_picked = rand(3:s)
