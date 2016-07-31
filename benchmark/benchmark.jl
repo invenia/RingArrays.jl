@@ -10,7 +10,7 @@ function print_seperator(file::IOStream, name::AbstractString)
     println(file)
 end
 
-open(joinpath(Pkg.dir("RingArrays"), "benchmark", "benchmark_result"), "w") do benchmark_file
+open(joinpath(dirname(@__FILE__), "benchmark_result"), "w") do benchmark_file
 
     num_test = 100
     m_b = 10
